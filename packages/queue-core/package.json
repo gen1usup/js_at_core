@@ -1,0 +1,30 @@
+{
+    "name":  "@automation-platform/queue-core",
+    "version":  "1.0.0",
+    "private":  true,
+    "main":  "dist/index.js",
+    "types":  "dist/index.d.ts",
+    "exports":  {
+                    ".":  {
+                              "types":  "./dist/index.d.ts",
+                              "default":  "./dist/index.js"
+                          }
+                },
+    "files":  [
+                  "dist"
+              ],
+    "scripts":  {
+                    "build":  "tsc -p tsconfig.json",
+                    "clean":  "rimraf dist",
+                    "typecheck":  "tsc -p tsconfig.json --noEmit",
+                    "lint":  "eslint src --ext .ts",
+                    "test":  "vitest run src/**/*.test.ts --passWithNoTests"
+                },
+    "dependencies":  {
+                         "zod":  "^3.24.1",
+                         "@automation-platform/logger":  "1.0.0",
+                         "@automation-platform/contracts":  "1.0.0",
+                         "@automation-platform/utils":  "1.0.0"
+                     }
+}
+

@@ -1,0 +1,28 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/contracts" },
+    { "path": "./packages/utils" },
+    { "path": "./packages/logger" },
+    { "path": "./packages/config" },
+    { "path": "./packages/metadata" },
+    { "path": "./packages/execution" },
+    { "path": "./packages/diagnostics" },
+    { "path": "./packages/selectors" },
+    { "path": "./packages/ui-driver" },
+    { "path": "./packages/ui-core" },
+    { "path": "./packages/ui-components" },
+    { "path": "./packages/ui-flows" },
+    { "path": "./packages/api-core" },
+    { "path": "./packages/db-core" },
+    { "path": "./packages/queue-core" },
+    { "path": "./packages/data-support" },
+    { "path": "./packages/repositories" },
+    { "path": "./packages/gateways" },
+    { "path": "./packages/plugins" },
+    { "path": "./packages/governance" },
+    { "path": "./packages/cli" },
+    { "path": "./projects/template-webapp" },
+    { "path": "./projects/core-showcase-tests" }
+  ]
+}

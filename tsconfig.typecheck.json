@@ -1,0 +1,36 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@automation-platform/contracts": ["packages/contracts/src/index.ts"],
+      "@automation-platform/config": ["packages/config/src/index.ts"],
+      "@automation-platform/logger": ["packages/logger/src/index.ts"],
+      "@automation-platform/utils": ["packages/utils/src/index.ts"],
+      "@automation-platform/metadata": ["packages/metadata/src/index.ts"],
+      "@automation-platform/execution": ["packages/execution/src/index.ts"],
+      "@automation-platform/diagnostics": ["packages/diagnostics/src/index.ts"],
+      "@automation-platform/selectors": ["packages/selectors/src/index.ts"],
+      "@automation-platform/ui-driver": ["packages/ui-driver/src/index.ts"],
+      "@automation-platform/ui-core": ["packages/ui-core/src/index.ts"],
+      "@automation-platform/ui-components": ["packages/ui-components/src/index.ts"],
+      "@automation-platform/ui-flows": ["packages/ui-flows/src/index.ts"],
+      "@automation-platform/api-core": ["packages/api-core/src/index.ts"],
+      "@automation-platform/db-core": ["packages/db-core/src/index.ts"],
+      "@automation-platform/queue-core": ["packages/queue-core/src/index.ts"],
+      "@automation-platform/data-support": ["packages/data-support/src/index.ts"],
+      "@automation-platform/repositories": ["packages/repositories/src/index.ts"],
+      "@automation-platform/gateways": ["packages/gateways/src/index.ts"],
+      "@automation-platform/plugins": ["packages/plugins/src/index.ts"],
+      "@automation-platform/governance": ["packages/governance/src/index.ts"],
+      "@automation-platform/cli": ["packages/cli/src/index.ts"]
+    }
+  },
+  "include": [
+    "packages/**/*.ts",
+    "projects/**/*.ts",
+    "scripts/**/*.ts"
+  ],
+  "exclude": ["**/dist/**", "**/node_modules/**"]
+}
