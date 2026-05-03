@@ -24,7 +24,7 @@
                          "@automation-platform/diagnostics":  "1.0.0",
                          "@automation-platform/contracts":  "1.0.0",
                          "@automation-platform/selectors":  "1.0.0",
-                         "puppeteer":  "^24.0.0",
+                         "@playwright/test":  "^1.57.0",
                          "@automation-platform/utils":  "1.0.0",
                          "@automation-platform/logger":  "1.0.0"
                      }

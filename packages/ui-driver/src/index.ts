@@ -1,11 +1,4 @@
-﻿import puppeteer, {
-  type Browser,
-  type ConsoleMessage,
-  type Dialog,
-  type HTTPRequest,
-  type HTTPResponse,
-  type Page
-} from 'puppeteer';
+﻿import { chromium, type Browser, type BrowserContext, type ConsoleMessage, type Dialog, type Locator, type Page, type Request, type Response } from '@playwright/test';
 import type {
   ExecutionContext,
   ResolvedSelector,
@@ -15,8 +8,8 @@ import type {
 } from '@automation-platform/contracts';
 import type { UIDiagnosticsProvider } from '@automation-platform/diagnostics';
 import type { PlatformLogger } from '@automation-platform/contracts';
-import { toPuppeteerSelector } from '@automation-platform/selectors';
-import { retry, TimeoutError, UIActionError } from '@automation-platform/utils';
+import { toPlaywrightSelector } from '@automation-platform/selectors';
+import { retry, UIActionError } from '@automation-platform/utils';
 
 export interface BrowserLaunchConfig {
   headless: boolean;
@@ -39,42 +32,51 @@ export interface DriverDiagnosticsSnapshot {
   lastStep?: string | undefined;
 }
 
-export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
+export class PlaywrightUiDriver implements UIDriver, UIDiagnosticsProvider {
   private readonly consoleEntries: Array<{ type: string; text: string }> = [];
   private readonly failedRequests: Array<{ url: string; method: string; errorText?: string | undefined }> = [];
   private readonly responses: Array<{ url: string; status: number; ok: boolean }> = [];
   private lastStep?: string;
 
   private constructor(
-    private readonly browser: Browser,
+    private readonly browser: Browser | undefined,
+    private readonly browserContext: BrowserContext,
     private readonly page: Page,
     private readonly logger: PlatformLogger,
     private readonly hooks: UiDriverHooks = {}
   ) {
-    this.bindListeners();
+    this.bindListeners(this.page);
   }
 
   public static async launch(
     config: BrowserLaunchConfig,
     logger: PlatformLogger,
     hooks?: UiDriverHooks
-  ): Promise<PuppeteerUiDriver> {
-    const launchOptions: Parameters<typeof puppeteer.launch>[0] = {
+  ): Promise<PlaywrightUiDriver> {
+    const launchOptions: Parameters<typeof chromium.launch>[0] = {
       headless: config.headless,
       slowMo: config.slowMoMs,
       args: ['--no-sandbox', '--disable-dev-shm-usage']
     };
 
     if (config.userDataDir) {
-      launchOptions.userDataDir = config.userDataDir;
+      const browserContext = await chromium.launchPersistentContext(config.userDataDir, {
+        ...launchOptions,
+        viewport: config.viewport
+      });
+      browserContext.setDefaultNavigationTimeout(config.defaultNavigationTimeoutMs);
+      browserContext.setDefaultTimeout(config.defaultNavigationTimeoutMs);
+      const page = browserContext.pages()[0] ?? (await browserContext.newPage());
+      return new PlaywrightUiDriver(undefined, browserContext, page, logger, hooks);
     }
 
-    const browser = await puppeteer.launch(launchOptions);
-    const page = await browser.newPage();
-    await page.setViewport(config.viewport);
-    page.setDefaultNavigationTimeout(config.defaultNavigationTimeoutMs);
+    const browser = await chromium.launch(launchOptions);
+    const browserContext = await browser.newContext({ viewport: config.viewport });
+    browserContext.setDefaultNavigationTimeout(config.defaultNavigationTimeoutMs);
+    browserContext.setDefaultTimeout(config.defaultNavigationTimeoutMs);
+    const page = await browserContext.newPage();
 
-    return new PuppeteerUiDriver(browser, page, logger, hooks);
+    return new PlaywrightUiDriver(browser, browserContext, page, logger, hooks);
   }
 
   public getRawPage(): Page {
@@ -90,19 +92,15 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
   ): Promise<void> {
     this.lastStep = `goto:${url}`;
 
-    const gotoOptions: Parameters<Page['goto']>[1] = {
-      waitUntil: options?.waitUntil ?? 'domcontentloaded'
-    };
-
-    if (options?.timeoutMs !== undefined) {
-      gotoOptions.timeout = options.timeoutMs;
-    }
-
-    await this.page.goto(url, gotoOptions);
+    await this.page.goto(url, {
+      waitUntil: this.mapWaitUntil(options?.waitUntil),
+      ...this.withTimeout(options?.timeoutMs)
+    });
   }
 
   public async close(): Promise<void> {
-    await this.browser.close();
+    await this.browserContext.close();
+    await this.browser?.close();
   }
 
   public async currentUrl(): Promise<string> {
@@ -121,8 +119,7 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
       'click',
       selector,
       async () => {
-        const handle = await this.waitForElement(selector, options?.timeoutMs);
-        await handle.click();
+        await this.locatorFor(selector).click(this.withTimeout(options?.timeoutMs));
       },
       options
     );
@@ -133,8 +130,7 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
       'double-click',
       selector,
       async () => {
-        const handle = await this.waitForElement(selector, options?.timeoutMs);
-        await handle.click({ clickCount: 2 });
+        await this.locatorFor(selector).dblclick(this.withTimeout(options?.timeoutMs));
       },
       options
     );
@@ -145,8 +141,7 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
       'hover',
       selector,
       async () => {
-        const handle = await this.waitForElement(selector, options?.timeoutMs);
-        await handle.hover();
+        await this.locatorFor(selector).hover(this.withTimeout(options?.timeoutMs));
       },
       options
     );
@@ -157,10 +152,7 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
       'fill',
       selector,
       async () => {
-        const handle = await this.waitForElement(selector, options?.timeoutMs);
-        await handle.click({ clickCount: 3 });
-        await this.page.keyboard.press('Backspace');
-        await handle.type(value);
+        await this.locatorFor(selector).fill(value, this.withTimeout(options?.timeoutMs));
       },
       options
     );
@@ -171,9 +163,7 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
       'clear',
       selector,
       async () => {
-        const handle = await this.waitForElement(selector, options?.timeoutMs);
-        await handle.click({ clickCount: 3 });
-        await this.page.keyboard.press('Backspace');
+        await this.locatorFor(selector).fill('', this.withTimeout(options?.timeoutMs));
       },
       options
     );
@@ -184,8 +174,7 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
       'type',
       selector,
       async () => {
-        const handle = await this.waitForElement(selector, options?.timeoutMs);
-        await handle.type(value);
+        await this.locatorFor(selector).pressSequentially(value, this.withTimeout(options?.timeoutMs));
       },
       options
     );
@@ -196,8 +185,7 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
       'press',
       selector,
       async () => {
-        await this.waitForElement(selector, options?.timeoutMs);
-        await this.page.keyboard.press(key as never);
+        await this.locatorFor(selector).press(key, this.withTimeout(options?.timeoutMs));
       },
       options
     );
@@ -212,14 +200,7 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
       'select',
       selector,
       async () => {
-        const resolved = toPuppeteerSelector(selector);
-        if (resolved.kind !== 'css') {
-          throw new UIActionError('Select requires css/testId selector strategy', {
-            metadata: { selector: selector.key }
-          });
-        }
-        const values = Array.isArray(value) ? value : [value];
-        await this.page.select(resolved.value, ...values);
+        await this.locatorFor(selector).selectOption(value, this.withTimeout(options?.timeoutMs));
       },
       options
     );
@@ -230,14 +211,7 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
       'check',
       selector,
       async () => {
-        const handle = await this.waitForElement(selector, options?.timeoutMs);
-        const checked = await handle.evaluate((node) => {
-          const input = node as unknown as { checked?: boolean };
-          return Boolean(input.checked);
-        });
-        if (!checked) {
-          await handle.click();
-        }
+        await this.locatorFor(selector).check(this.withTimeout(options?.timeoutMs));
       },
       options
     );
@@ -248,14 +222,7 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
       'uncheck',
       selector,
       async () => {
-        const handle = await this.waitForElement(selector, options?.timeoutMs);
-        const checked = await handle.evaluate((node) => {
-          const input = node as unknown as { checked?: boolean };
-          return Boolean(input.checked);
-        });
-        if (checked) {
-          await handle.click();
-        }
+        await this.locatorFor(selector).uncheck(this.withTimeout(options?.timeoutMs));
       },
       options
     );
@@ -266,10 +233,7 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
       'upload',
       selector,
       async () => {
-        const handle = await this.waitForElement(selector, options?.timeoutMs);
-        await (handle as unknown as { uploadFile: (...paths: string[]) => Promise<void> }).uploadFile(
-          filePath
-        );
+        await this.locatorFor(selector).setInputFiles(filePath, this.withTimeout(options?.timeoutMs));
       },
       options
     );
@@ -279,10 +243,7 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
     return this.withAction(
       'text',
       selector,
-      async () => {
-        const handle = await this.waitForElement(selector, options?.timeoutMs);
-        return handle.evaluate((node) => node.textContent?.trim() ?? '');
-      },
+      async () => (await this.locatorFor(selector).textContent(this.withTimeout(options?.timeoutMs)))?.trim() ?? '',
       options
     );
   }
@@ -291,13 +252,7 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
     return this.withAction(
       'value',
       selector,
-      async () => {
-        const handle = await this.waitForElement(selector, options?.timeoutMs);
-        return handle.evaluate((node) => {
-          const input = node as unknown as { value?: unknown };
-          return String(input.value ?? '');
-        });
-      },
+      async () => this.locatorFor(selector).inputValue(this.withTimeout(options?.timeoutMs)),
       options
     );
   }
@@ -310,35 +265,21 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
     return this.withAction(
       'attribute',
       selector,
-      async () => {
-        const handle = await this.waitForElement(selector, options?.timeoutMs);
-        return handle.evaluate((node, attrName) => node.getAttribute(attrName), attribute);
-      },
+      async () => this.locatorFor(selector).getAttribute(attribute, this.withTimeout(options?.timeoutMs)),
       options
     );
   }
 
   public async waitForVisible(selector: ResolvedSelector, options: UIWaitOptions = {}): Promise<void> {
-    await this.waitForElement(selector, options.timeoutMs, true);
+    await this.locatorFor(selector).waitFor({ state: 'visible', timeout: options.timeoutMs ?? 10_000 });
   }
 
   public async waitForHidden(selector: ResolvedSelector, options: UIWaitOptions = {}): Promise<void> {
-    const timeoutMs = options.timeoutMs ?? 10_000;
-    const resolved = toPuppeteerSelector(selector);
-
-    if (resolved.kind === 'css') {
-      await this.page.waitForSelector(resolved.value, { hidden: true, timeout: timeoutMs });
-      return;
-    }
-
-    await this.page.waitForSelector(`::-p-xpath(${resolved.value})`, {
-      hidden: true,
-      timeout: timeoutMs
-    });
+    await this.locatorFor(selector).waitFor({ state: 'hidden', timeout: options.timeoutMs ?? 10_000 });
   }
 
   public async waitForExists(selector: ResolvedSelector, options: UIWaitOptions = {}): Promise<void> {
-    await this.waitForElement(selector, options.timeoutMs, false);
+    await this.locatorFor(selector).waitFor({ state: 'attached', timeout: options.timeoutMs ?? 10_000 });
   }
 
   public async evaluate<TOutput>(expression: () => TOutput): Promise<TOutput> {
@@ -354,7 +295,7 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
   }
 
   public async cookies(): Promise<unknown> {
-    return this.page.cookies();
+    return this.browserContext.cookies();
   }
 
   public async localStorage(): Promise<Record<string, string>> {
@@ -384,7 +325,8 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
   }
 
   public async openNewTab(url?: string): Promise<Page> {
-    const page = await this.browser.newPage();
+    const page = await this.browserContext.newPage();
+    this.bindListeners(page);
     if (url) {
       await page.goto(url, { waitUntil: 'domcontentloaded' });
     }
@@ -421,22 +363,23 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
   }
 
   public static fromExecutionContext(
-    context: ExecutionContext,
-    browser: Browser,
+    executionContext: ExecutionContext,
+    browser: Browser | undefined,
+    browserContext: BrowserContext,
     page: Page,
     hooks?: UiDriverHooks
-  ): PuppeteerUiDriver {
-    return new PuppeteerUiDriver(browser, page, context.logger, hooks);
+  ): PlaywrightUiDriver {
+    return new PlaywrightUiDriver(browser, browserContext, page, executionContext.logger, hooks);
   }
 
-  private bindListeners(): void {
-    this.page.on('console', (message: ConsoleMessage) => {
+  private bindListeners(page: Page): void {
+    page.on('console', (message: ConsoleMessage) => {
       const entry = { type: message.type(), text: message.text() };
       this.consoleEntries.push(entry);
       this.hooks.onConsole?.(entry);
     });
 
-    this.page.on('requestfailed', (request: HTTPRequest) => {
+    page.on('requestfailed', (request: Request) => {
       const entry: { url: string; method: string; errorText?: string | undefined } = {
         url: request.url(),
         method: request.method()
@@ -450,7 +393,7 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
       this.hooks.onRequestFailed?.(entry);
     });
 
-    this.page.on('response', (response: HTTPResponse) => {
+    page.on('response', (response: Response) => {
       const entry = {
         url: response.url(),
         status: response.status(),
@@ -461,30 +404,37 @@ export class PuppeteerUiDriver implements UIDriver, UIDiagnosticsProvider {
     });
   }
 
-  private async waitForElement(selector: ResolvedSelector, timeoutMs = 10_000, visible = true) {
-    const resolved = toPuppeteerSelector(selector);
+  private locatorFor(selector: ResolvedSelector): Locator {
+    const resolved = toPlaywrightSelector(selector);
 
-    if (resolved.kind === 'css') {
-      const element = await this.page.waitForSelector(resolved.value, {
-        timeout: timeoutMs,
-        visible
-      });
-      if (!element) {
-        throw new TimeoutError(`Element not found: ${selector.namespace}.${selector.key}`);
-      }
-      return element;
+    switch (resolved.kind) {
+      case 'css':
+        return this.page.locator(resolved.value);
+      case 'xpath':
+        return this.page.locator(`xpath=${resolved.value}`);
+      case 'testId':
+        return this.page.getByTestId(resolved.value);
+      case 'text':
+        return this.page.getByText(resolved.value);
+      default:
+        throw new UIActionError('Unsupported selector strategy', {
+          metadata: { selector: selector.key }
+        });
+    }
+  }
+
+  private mapWaitUntil(
+    waitUntil: 'load' | 'domcontentloaded' | 'networkidle0' | 'networkidle2' | undefined
+  ): 'load' | 'domcontentloaded' | 'networkidle' {
+    if (waitUntil === 'networkidle0' || waitUntil === 'networkidle2') {
+      return 'networkidle';
     }
 
-    const element = await this.page.waitForSelector(`::-p-xpath(${resolved.value})`, {
-      timeout: timeoutMs,
-      visible
-    });
+    return waitUntil ?? 'domcontentloaded';
+  }
 
-    if (!element) {
-      throw new TimeoutError(`Element not found (xpath): ${selector.namespace}.${selector.key}`);
-    }
-
-    return element;
+  private withTimeout(timeoutMs: number | undefined): { timeout?: number } {
+    return timeoutMs === undefined ? {} : { timeout: timeoutMs };
   }
 
   private async withAction<T>(

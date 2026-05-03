@@ -42,6 +42,23 @@ npx tsx demo-web-app/src/server.ts
 npx tsx demo-web-app/src/demo-scenario.ts
 ```
 
+## Playwright browser e2e из корня
+Playwright e2e проверяет именно браузерный UI: открывает главную страницу, регистрирует пользователя, логинится и создаёт задачу через кнопки и поля формы.
+
+```bash
+npm run test:e2e
+npm run test:e2e:headed
+npm run test:e2e:debug
+```
+
+Если `BASE_URL` или `AP_BASE_URL` не заданы, Playwright сам запускает этот demo server на `http://127.0.0.1:3010`. Для проверки уже запущенного стенда задайте URL явно:
+
+```bash
+BASE_URL=http://localhost:3000 npm run test:e2e
+```
+
+Отличие от `demo-scenario.ts`: `demo-scenario.ts` проверяет API flow без браузера, а `npm run test:e2e` проверяет UI flow через Playwright.
+
 ## Конфигурация через env
 Можно переопределить параметры перед запуском.
 

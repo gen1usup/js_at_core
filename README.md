@@ -1,7 +1,7 @@
 # Automation Platform Core (TypeScript Monorepo)
 
 ## 1. Что это за проект
-Это production-grade монорепозиторий с переиспользуемым ядром автоматизации для многих веб-проектов. Ядро разделено на независимые пакеты: UI (Puppeteer), API (Axios), DB, Queue, диагностика, orchestration, plugins, governance, CLI и template-проект.
+Это production-grade монорепозиторий с переиспользуемым ядром автоматизации для многих веб-проектов. Ядро разделено на независимые пакеты: UI (Playwright), API (Axios), DB, Queue, диагностика, orchestration, plugins, governance, CLI и template-проект.
 
 ## 2. Для чего он нужен
 Проект решает задачу стандартизации автоматизации в компании:
@@ -18,8 +18,8 @@
 - Детальная диагностика и артефакты.
 - Domain-neutral core + project-specific adapters.
 
-## 4. Почему выбраны Puppeteer и Axios
-- Puppeteer: стабильная автоматизация Chromium, достаточный low-level контроль, возможность строить свой abstraction layer без vendor lock-in на уровне test DSL.
+## 4. Почему выбраны Playwright и Axios
+- Playwright: современная browser automation платформа с auto-waiting, locator-first API, trace/video/screenshot артефактами и удобным e2e runner без собственного DSL.
 - Axios: зрелая экосистема interceptors/retries/timeouts и удобная композиция typed HTTP client abstraction.
 
 ## 5. Общая структура monorepo
@@ -61,8 +61,8 @@
 - `metadata`: declaration/validation helper для test metadata.
 - `execution`: execution context, step runner, cleanup/resource registries.
 - `diagnostics`: failure bundle, артефакты (screenshot/html/storage/network/console/API/DB/queue traces).
-- `selectors`: namespaced registry, builder, fallback/prioritization, Puppeteer conversion.
-- `ui-driver`: Puppeteer abstraction (navigation/actions/waits/storage/network/console/tabs/dialogs).
+- `selectors`: namespaced registry, builder, fallback/prioritization, Playwright conversion.
+- `ui-driver`: Playwright abstraction (navigation/actions/waits/storage/network/console/tabs/dialogs).
 - `ui-core`: устойчивые UI actions/assertions/waits с retry.
 - `ui-components`: domain-neutral компоненты (button/input/table/modal/...).
 - `ui-flows`: high-level flows (auth/crud/search/upload/permission).
@@ -94,6 +94,36 @@ npm run test
 npm run validate
 npm run ci
 ```
+
+## Playwright e2e
+
+Browser e2e проверяет UI `demo-web-app`: открыть главную страницу, зарегистрировать пользователя, войти и создать задачу через Playwright locators. Если `BASE_URL`/`AP_BASE_URL` не задан, Playwright сам поднимает локальный `demo-web-app`.
+
+### Setup
+```bash
+npm install
+npx playwright install chromium
+```
+
+### Environment
+```bash
+BASE_URL=http://localhost:3000
+```
+
+If `BASE_URL`/`AP_BASE_URL` is not set, Playwright starts the local `demo-web-app` and uses `http://127.0.0.1:3010`.
+
+### Run
+```bash
+npm run test:e2e
+npm run test:e2e:headed
+npm run test:e2e:debug
+npm run test:e2e:ui
+npm run test:e2e:report
+```
+
+### Artifacts
+- HTML report: `playwright-report/`
+- Traces, videos and screenshots: `test-results/`
 
 ## 10. Как устроен конфиг
 Конфиг собирается в `packages/config` и всегда проходит runtime-валидацию через `zod`.
@@ -187,7 +217,7 @@ Selectors — namespaced registry с fallback candidates:
 - builders через `SelectorBuilder`.
 
 ## 15. Как устроен UI layer
-- `ui-driver`: низкоуровневый безопасный Puppeteer facade.
+- `ui-driver`: низкоуровневый безопасный Playwright facade.
 - `ui-core`: retryable actions + wait/assert wrappers.
 - `ui-components`: reusable component objects.
 - `ui-flows`: бизнес-сценарии из компонентов/действий.
@@ -340,7 +370,7 @@ node packages/cli/dist/index.js inspect-env
 
 ## 32. Антипаттерны
 - Хардкод URL/selectors в тестах.
-- Прямой Puppeteer/Axios/SQL вызов в бизнес-сценарии без слоя abstractions.
+- Прямой Playwright/Axios/SQL вызов в бизнес-сценарии без слоя abstractions.
 - Неидемпотентный cleanup.
 - Скрытые side effects без логирования.
 
@@ -456,7 +486,7 @@ const gateway = new TemplateWebGateway(apiRepo, dbRepo, queueClient, context, lo
 ## 36. Ограничения текущей реализации
 - Queue adapter по умолчанию in-memory (для реального брокера нужен vendor adapter).
 - DB интеграционные тесты с PostgreSQL не включены в unit run (нужен внешний инстанс).
-- UI e2e не запускаются автоматически в test suite (фокус на framework internals).
+- UI e2e запускаются в `npm run ci`; по умолчанию они используют локальный `demo-web-app`, внешний стенд задаётся через `BASE_URL` или `AP_BASE_URL`.
 
 ## 37. Идеи дальнейшего развития
 - Реальные adapters для Kafka/Rabbit/SQS.
@@ -475,8 +505,8 @@ npm run ci
 
 ## CI/CD
 - Готовые шаблоны: `.github/workflows/ci.yml`, `.gitlab-ci.yml`.
-- Пайплайн-гейты: lint, typecheck, test, build, validate.
-- Артефакты: `artifacts/**`, `coverage/**`, `packages/*/dist`, `projects/*/dist`.
+- Пайплайн-гейты: lint, typecheck, test, build, validate, Playwright e2e.
+- Артефакты: `artifacts/**`, `coverage/**`, `playwright-report/**`, `test-results/**`, `packages/*/dist`, `projects/*/dist`.
 - Команда для пайплайна: `npm run ci`.
 
 ## Секреты и безопасность
@@ -491,11 +521,12 @@ npm run ci
 - `npm run test`
 - `npm run build`
 - `npm run validate`
+- `npm run test:e2e`
 - `npm run ci`
 
 
 ## Дополнение: Standalone Demo Web App
-В репозитории добавлен полностью изолированный демонстрационный проект: `demo-web-app/`.
+В репозитории добавлен полностью изолированный демонстрационный проект: `demo-web-app/`. Он используется как дефолтный target для Playwright browser e2e и real integration showcase.
 
 - Он не импортирует `@automation-platform/*` пакеты.
 - Не участвует в сборке core-пакетов.
@@ -504,6 +535,8 @@ npm run ci
 Отдельная инструкция запуска: `demo-web-app/README.md`.
 
 ## Showcase Tests
-- Mock showcase (core in isolation): `projects/core-showcase-tests/tests/core-capabilities-showcase.test.ts`
-- Real integration with demo app: `projects/core-showcase-tests/tests/integration-real-demo.test.ts`
-- If `demo-web-app` is removed, real integration test is auto-skipped and core test suite remains runnable.
+- Template scenario without browser: `projects/template-webapp/tests/template.test.ts` demonstrates queue-aware project composition.
+- Core mock showcase: `projects/core-showcase-tests/tests/core-capabilities-showcase.test.ts` demonstrates API/DB/queue/diagnostics/plugins plus the `UIDriver` contract with a fake driver.
+- Real demo integration without browser automation: `projects/core-showcase-tests/tests/integration-real-demo.test.ts` starts `demo-web-app` and verifies API/auth/queue/DB/diagnostics.
+- Browser UI e2e: `tests/e2e/smoke.spec.ts` uses Playwright against `demo-web-app` or `BASE_URL`.
+- If `demo-web-app` is removed, the real integration test is auto-skipped; Playwright e2e needs `BASE_URL`/`AP_BASE_URL` to target another app.

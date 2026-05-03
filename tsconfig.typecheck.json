@@ -30,7 +30,9 @@
   "include": [
     "packages/**/*.ts",
     "projects/**/*.ts",
-    "scripts/**/*.ts"
+    "scripts/**/*.ts",
+    "tests/**/*.ts",
+    "playwright.config.ts"
   ],
   "exclude": ["**/dist/**", "**/node_modules/**"]
 }

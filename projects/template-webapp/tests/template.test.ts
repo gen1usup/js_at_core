@@ -57,7 +57,7 @@ class FakeDbClient {
 }
 
 describe('template-webapp', () => {
-  it('runs queue aware scenario', async () => {
+  it('runs template queue-aware scenario without a browser', async () => {
     const logger = createLogger({
       level: 'info',
       serviceName: 'test',
@@ -104,3 +104,4 @@ describe('template-webapp', () => {
     expect(result.queueMessageId.length).toBeGreaterThan(0);
   });
 });
+

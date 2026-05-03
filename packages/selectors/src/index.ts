@@ -189,24 +189,21 @@ export class SelectorBuilder {
   }
 }
 
-export interface PuppeteerSelector {
-  kind: 'css' | 'xpath';
+export interface PlaywrightSelector {
+  kind: 'css' | 'xpath' | 'text' | 'testId';
   value: string;
 }
 
-export const toPuppeteerSelector = (resolved: ResolvedSelector): PuppeteerSelector => {
+export const toPlaywrightSelector = (resolved: ResolvedSelector): PlaywrightSelector => {
   switch (resolved.candidate.strategy) {
     case 'css':
       return { kind: 'css', value: resolved.candidate.value };
     case 'xpath':
       return { kind: 'xpath', value: resolved.candidate.value };
     case 'testId':
-      return { kind: 'css', value: `[data-testid="${resolved.candidate.value}"]` };
+      return { kind: 'testId', value: resolved.candidate.value };
     case 'text':
-      return {
-        kind: 'xpath',
-        value: `//*[contains(normalize-space(text()), "${resolved.candidate.value}")]`
-      };
+      return { kind: 'text', value: resolved.candidate.value };
     default:
       throw new SelectorResolutionError('Unsupported selector strategy', {
         metadata: {

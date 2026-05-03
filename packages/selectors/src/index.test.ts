@@ -3,7 +3,7 @@ import {
   NamespacedSelectorRegistry,
   SelectorBuilder,
   resolveBestCandidate,
-  toPuppeteerSelector
+  toPlaywrightSelector
 } from './index';
 
 describe('selectors', () => {
@@ -17,15 +17,15 @@ describe('selectors', () => {
     expect(best?.strategy).toBe('testId');
   });
 
-  it('resolves namespaced selectors and converts to puppeteer', () => {
+  it('resolves namespaced selectors and converts to playwright', () => {
     const registry = new NamespacedSelectorRegistry([
       new SelectorBuilder('demo', 'search').withTestId('search-input').withCss('#search').build()
     ]);
 
     const resolved = registry.resolveOrThrow('search', 'demo');
-    const puppeteer = toPuppeteerSelector(resolved);
+    const playwright = toPlaywrightSelector(resolved);
 
-    expect(puppeteer.kind).toBe('css');
-    expect(puppeteer.value).toContain('data-testid');
+    expect(playwright.kind).toBe('testId');
+    expect(playwright.value).toBe('search-input');
   });
 });

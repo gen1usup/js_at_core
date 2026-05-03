@@ -1,4 +1,4 @@
-import fs from 'node:fs/promises';
+﻿import fs from 'node:fs/promises';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import type {
@@ -180,7 +180,7 @@ class FakeDatabaseClient implements DatabaseClient {
   }
 }
 
-class FakeUidriver implements UIDriver {
+class FakeUiDriver implements UIDriver {
   public readonly values = new Map<string, string>();
   public readonly clicked: string[] = [];
 
@@ -273,7 +273,7 @@ afterEach(async () => {
 });
 
 describe('core capabilities showcase', () => {
-  it('keeps mock-based tests and demonstrates core modules in one scenario', async () => {
+  it('demonstrates core API/DB/queue/diagnostics modules with a contract-only UI driver', async () => {
     const config = loadPlatformConfig({
       env: {
         AP_BASE_URL: 'http://mock.local',
@@ -379,7 +379,7 @@ describe('core capabilities showcase', () => {
       new SelectorBuilder('demo', 'submit').withTestId('submit').withCss('#submit').build()
     ]);
 
-    const uiDriver = new FakeUidriver();
+    const uiDriver = new FakeUiDriver();
     const uiCore = new UICore({
       driver: uiDriver,
       selectors,
@@ -483,3 +483,4 @@ describe('core capabilities showcase', () => {
     expect(reportRaw).toContain(context.executionId);
   });
 });
+

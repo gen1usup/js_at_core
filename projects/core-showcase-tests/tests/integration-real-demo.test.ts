@@ -95,7 +95,7 @@ const dlqSchema = envelope(
 );
 
 describe('core real integration with demo-web-app', () => {
-  maybeIt('runs end-to-end flow against real demo API/DB/queue and persists diagnostics plugin report', async () => {
+  maybeIt('runs real API/DB/queue/diagnostics flow against demo app without browser automation', async () => {
     const demoDataDir = path.resolve('artifacts', 'demo-real-integration-data', `${Date.now()}`);
 
     const imported = (await import(demoAppEntryPath)) as DemoAppModule;
@@ -146,14 +146,14 @@ describe('core real integration with demo-web-app', () => {
 
     const metadata = defineMetadata({
       testId: 'core-real-demo-001',
-      title: 'Real integration test for demo web app',
+      title: 'Real API/DB/queue/diagnostics integration test for demo web app',
       feature: 'core-real-integration',
-      component: 'integration',
+      component: 'api-db-queue-integration',
       severity: 'high',
       risk: 'major',
       businessCriticality: 'p1',
       owner: 'platform-team',
-      tags: ['real', 'demo', 'api', 'queue', 'db'],
+      tags: ['real', 'demo', 'api', 'queue', 'db', 'no-browser'],
       estimatedDurationMs: 120_000,
       suite: 'regression',
       capabilityRequirements: ['api', 'queue', 'db', 'diagnostics', 'plugins', 'cleanup']
@@ -412,3 +412,4 @@ describe('core real integration with demo-web-app', () => {
     expect(appStopped).toBe(true);
   });
 });
+
