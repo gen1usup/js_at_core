@@ -1,6 +1,11 @@
-﻿import { Pool, type PoolClient, type QueryResultRow } from 'pg';
+import { Pool, type PoolClient, type QueryResultRow } from 'pg';
 import { z } from 'zod';
-import type { DatabaseClient, DbQueryOptions, PlatformLogger, RetryPolicy } from '@automation-platform/contracts';
+import type {
+  DatabaseClient,
+  DbQueryOptions,
+  PlatformLogger,
+  RetryPolicy
+} from '@automation-platform/contracts';
 import { DbOperationError, maskSensitive, retry, waitFor } from '@automation-platform/utils';
 
 export const dbConfigSchema = z.object({
@@ -76,12 +81,20 @@ export class PostgresDatabaseClient implements DatabaseClient {
     return (firstKey ? (row[firstKey] as T | undefined) : undefined) ?? null;
   }
 
-  public async exists(sql: string, params: readonly unknown[], options?: DbQueryOptions): Promise<boolean> {
+  public async exists(
+    sql: string,
+    params: readonly unknown[],
+    options?: DbQueryOptions
+  ): Promise<boolean> {
     const value = await this.scalar<unknown>(sql, params, options);
     return Boolean(value);
   }
 
-  public async execute(sql: string, params: readonly unknown[], options?: DbQueryOptions): Promise<number> {
+  public async execute(
+    sql: string,
+    params: readonly unknown[],
+    options?: DbQueryOptions
+  ): Promise<number> {
     this.ensureAllowed(sql);
     const startedAt = Date.now();
 
@@ -230,7 +243,9 @@ class TransactionDatabaseClient implements DatabaseClient {
       params: maskSensitive(params)
     });
 
-    return mapper ? result.rows.map((row) => mapper(row as QueryResultRow)) : (result.rows as unknown as T[]);
+    return mapper
+      ? result.rows.map((row) => mapper(row as QueryResultRow))
+      : (result.rows as unknown as T[]);
   }
 
   public async scalar<T>(sql: string, params: readonly unknown[]): Promise<T | null> {
@@ -280,8 +295,4 @@ const ensureWriteAllowed = (config: DbConfig, sql: string): void => {
   }
 };
 
-const previewSql = (sql: string): string =>
-  sql.replace(/\s+/g, ' ').trim().slice(0, 300);
-
-
-
+const previewSql = (sql: string): string => sql.replace(/\s+/g, ' ').trim().slice(0, 300);

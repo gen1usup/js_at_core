@@ -1,4 +1,4 @@
-﻿import fs from 'node:fs/promises';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import type {
   ExecutionContext,
@@ -75,16 +75,21 @@ export class DiagnosticsReportPlugin implements PlatformPlugin {
 }
 
 export interface AccessibilityPluginContract extends PlatformPlugin {
-  runAccessibilityAudit?(context: ExecutionContext): Promise<{ violations: number; reportPath?: string }>;
+  runAccessibilityAudit?(
+    context: ExecutionContext
+  ): Promise<{ violations: number; reportPath?: string }>;
 }
 
 export interface VisualRegressionPluginContract extends PlatformPlugin {
-  compareScreenshots?(context: ExecutionContext): Promise<{ mismatches: number; reportPath?: string }>;
+  compareScreenshots?(
+    context: ExecutionContext
+  ): Promise<{ mismatches: number; reportPath?: string }>;
 }
 
 export interface AIPluginContract extends PlatformPlugin {
-  analyzeFailure?(payload: PluginHookPayload): Promise<{ summary: string; recommendations: string[] }>;
+  analyzeFailure?(
+    payload: PluginHookPayload
+  ): Promise<{ summary: string; recommendations: string[] }>;
 }
 
 export const createCustomProjectPlugin = (plugin: PlatformPlugin): PlatformPlugin => plugin;
-

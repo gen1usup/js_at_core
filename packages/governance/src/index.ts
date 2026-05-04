@@ -1,7 +1,11 @@
-﻿import fs from 'node:fs/promises';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
-import type { CliValidationResult, SelectorDefinition, TestMetadata } from '@automation-platform/contracts';
+import type {
+  CliValidationResult,
+  SelectorDefinition,
+  TestMetadata
+} from '@automation-platform/contracts';
 import { validateConfig, type PlatformConfig } from '@automation-platform/config';
 import { validateMetadata } from '@automation-platform/metadata';
 import { validateSelectorDefinition } from '@automation-platform/selectors';
@@ -20,7 +24,9 @@ export interface GovernanceReport {
 
 const camelCaseSchema = z.string().regex(/^[a-z][A-Za-z0-9]*$/);
 
-export const validateSelectorQuality = (selectors: readonly SelectorDefinition[]): GovernanceIssue[] => {
+export const validateSelectorQuality = (
+  selectors: readonly SelectorDefinition[]
+): GovernanceIssue[] => {
   const issues: GovernanceIssue[] = [];
 
   selectors.forEach((selector) => {
@@ -113,26 +119,37 @@ export const validateName = (
   ];
 };
 
+const hardSleepAllowMarker = 'governance-allow hard-sleep';
+
 export const detectHardSleepUsage = (content: string, source?: string): GovernanceIssue[] => {
   const forbiddenPatterns = [/setTimeout\s*\(/, /waitForTimeout\s*\(/, /sleep\s*\(/];
   const issues: GovernanceIssue[] = [];
 
-  forbiddenPatterns.forEach((pattern) => {
-    if (!pattern.test(content)) {
+  const lines = content.split(/\r?\n/);
+
+  lines.forEach((line, index) => {
+    const markerContext = [lines[index - 1], line, lines[index + 1]].filter(Boolean).join(' ');
+    if (markerContext.includes(hardSleepAllowMarker)) {
       return;
     }
 
-    const issue: GovernanceIssue = {
-      level: 'warning',
-      code: 'NO_HARD_SLEEP_POLICY',
-      message: 'Hard sleep usage detected; prefer retry/wait utilities'
-    };
+    forbiddenPatterns.forEach((pattern) => {
+      if (!pattern.test(line)) {
+        return;
+      }
 
-    if (source) {
-      issue.source = source;
-    }
+      const issue: GovernanceIssue = {
+        level: 'warning',
+        code: 'NO_HARD_SLEEP_POLICY',
+        message: 'Hard sleep usage detected; prefer retry/wait utilities'
+      };
 
-    issues.push(issue);
+      if (source) {
+        issue.source = source;
+      }
+
+      issues.push(issue);
+    });
   });
 
   return issues;

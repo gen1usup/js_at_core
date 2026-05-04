@@ -1,4 +1,4 @@
-﻿import type { RouteDefinition, RouteRegistry, RouteParams } from '@automation-platform/contracts';
+import type { RouteDefinition, RouteRegistry, RouteParams } from '@automation-platform/contracts';
 
 const buildRoute = <TParams extends RouteParams | undefined>(
   name: string,

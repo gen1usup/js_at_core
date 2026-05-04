@@ -1,7 +1,11 @@
-﻿import fs from 'node:fs/promises';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import type { CleanupRegistry, PlatformLogger, ResourceRegistry } from '@automation-platform/contracts';
+import type {
+  CleanupRegistry,
+  PlatformLogger,
+  ResourceRegistry
+} from '@automation-platform/contracts';
 import { createFailureBundle } from './index';
 
 const noopLogger: PlatformLogger = {

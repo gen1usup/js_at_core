@@ -1,4 +1,4 @@
-﻿import pino from 'pino';
+import pino from 'pino';
 import type { LogMeta, LogLevel, PlatformLogger } from '@automation-platform/contracts';
 import { maskSensitive } from '@automation-platform/utils';
 
@@ -82,9 +82,5 @@ export const createLogger = (options: LoggerFactoryOptions): PlatformLogger => {
   return new PinoPlatformLogger(logger);
 };
 
-export const withLoggerContext = (
-  logger: PlatformLogger,
-  context: LoggerContext
-): PlatformLogger => logger.child(context);
-
-
+export const withLoggerContext = (logger: PlatformLogger, context: LoggerContext): PlatformLogger =>
+  logger.child(context);

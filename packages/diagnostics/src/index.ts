@@ -1,4 +1,4 @@
-﻿import fs from 'node:fs/promises';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import type {
   DiagnosticArtifact,
@@ -76,14 +76,22 @@ export class DiagnosticsCollector {
     await fs.mkdir(this.options.rootDir, { recursive: true });
   }
 
-  public async addJsonArtifact(name: string, payload: unknown, type: DiagnosticArtifact['type']): Promise<string> {
+  public async addJsonArtifact(
+    name: string,
+    payload: unknown,
+    type: DiagnosticArtifact['type']
+  ): Promise<string> {
     const filePath = path.join(this.options.rootDir, `${name}.json`);
     await fs.writeFile(filePath, safeJsonStringify(payload), 'utf8');
     this.register(type, name, filePath);
     return filePath;
   }
 
-  public register(type: DiagnosticArtifact['type'], name: string, filePath: string): DiagnosticArtifact {
+  public register(
+    type: DiagnosticArtifact['type'],
+    name: string,
+    filePath: string
+  ): DiagnosticArtifact {
     const artifact: DiagnosticArtifact = {
       id: `${type}-${this.artifacts.length + 1}`,
       type,
@@ -120,8 +128,16 @@ export const createFailureBundle = async (input: FailureBundleInput): Promise<Di
 
       await collector.addJsonArtifact('url', { url: await input.uiProvider.url() }, 'json');
       await collector.addJsonArtifact('cookies', await input.uiProvider.cookies(), 'json');
-      await collector.addJsonArtifact('localStorage', await input.uiProvider.localStorage(), 'json');
-      await collector.addJsonArtifact('sessionStorage', await input.uiProvider.sessionStorage(), 'json');
+      await collector.addJsonArtifact(
+        'localStorage',
+        await input.uiProvider.localStorage(),
+        'json'
+      );
+      await collector.addJsonArtifact(
+        'sessionStorage',
+        await input.uiProvider.sessionStorage(),
+        'json'
+      );
 
       const htmlPath = path.join(diagnosticsDir, 'page.html');
       await fs.writeFile(htmlPath, await input.uiProvider.html(), 'utf8');
@@ -167,7 +183,8 @@ export const createFailureBundle = async (input: FailureBundleInput): Promise<Di
     }
 
     if (input.error !== undefined) {
-      summary.errorMessage = input.error instanceof Error ? input.error.message : String(input.error);
+      summary.errorMessage =
+        input.error instanceof Error ? input.error.message : String(input.error);
     }
 
     const bundle = collector.createBundle(summary);
@@ -189,4 +206,3 @@ export const createFailureBundle = async (input: FailureBundleInput): Promise<Di
     });
   }
 };
-

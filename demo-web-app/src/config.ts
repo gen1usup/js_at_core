@@ -2,7 +2,9 @@ import path from 'node:path';
 import type { DemoConfig } from './types';
 import { readNumber } from './validation';
 
-export const loadDemoConfig = (env: Record<string, string | undefined> = process.env): DemoConfig => {
+export const loadDemoConfig = (
+  env: Record<string, string | undefined> = process.env
+): DemoConfig => {
   const cwd = process.cwd();
 
   const configuredDataDir = env.DEMO_DATA_DIR ?? './demo-web-app/data';

@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { defineMetadata, metadataSupportsCapabilities } from './index';
 
 describe('metadata', () => {

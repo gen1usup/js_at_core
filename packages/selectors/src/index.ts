@@ -1,4 +1,4 @@
-﻿import { z } from 'zod';
+import { z } from 'zod';
 import type {
   ResolvedSelector,
   SelectorCandidate,
@@ -78,13 +78,16 @@ export class NamespacedSelectorRegistry implements SelectorRegistry {
 
     const candidate = resolveBestCandidate(definition, preferredStrategies);
     if (!candidate) {
-      throw new SelectorResolutionError(`No candidates available for selector: ${namespace}.${key}`, {
-        metadata: {
-          namespace,
-          key,
-          preferredStrategies
+      throw new SelectorResolutionError(
+        `No candidates available for selector: ${namespace}.${key}`,
+        {
+          metadata: {
+            namespace,
+            key,
+            preferredStrategies
+          }
         }
-      });
+      );
     }
 
     return {

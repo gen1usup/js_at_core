@@ -36,11 +36,15 @@ export const readString = (
   }
 
   if (options.minLength !== undefined && value.length < options.minLength) {
-    throw new ValidationError(`Field "${key}" must contain at least ${options.minLength} characters`);
+    throw new ValidationError(
+      `Field "${key}" must contain at least ${options.minLength} characters`
+    );
   }
 
   if (options.maxLength !== undefined && value.length > options.maxLength) {
-    throw new ValidationError(`Field "${key}" must contain no more than ${options.maxLength} characters`);
+    throw new ValidationError(
+      `Field "${key}" must contain no more than ${options.maxLength} characters`
+    );
   }
 
   return value;

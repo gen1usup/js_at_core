@@ -1,4 +1,4 @@
-﻿import type { ExecutionContext } from '@automation-platform/contracts';
+import type { ExecutionContext } from '@automation-platform/contracts';
 import { QueueWaiter } from '@automation-platform/queue-core';
 import type { QueueClient } from '@automation-platform/contracts';
 import type { TemplateWebGateway } from './gateway';
@@ -41,4 +41,3 @@ export const runQueueAwareScenario = async (
     queueMessageId: message.id
   };
 };
-

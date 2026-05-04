@@ -1,13 +1,21 @@
-﻿import type { ApiRepository, DatabaseClient, DbRepository, HttpClient, HttpRequest, PlatformLogger } from '@automation-platform/contracts';
+import type {
+  ApiRepository,
+  DatabaseClient,
+  DbRepository,
+  HttpClient,
+  HttpRequest,
+  PlatformLogger
+} from '@automation-platform/contracts';
 import { waitFor } from '@automation-platform/utils';
 
 export interface EntityWithId<TId> {
   id: TId;
 }
 
-export abstract class BaseApiRepository<TEntity extends EntityWithId<TId>, TId>
-  implements ApiRepository<TEntity, TId>
-{
+export abstract class BaseApiRepository<
+  TEntity extends EntityWithId<TId>,
+  TId
+> implements ApiRepository<TEntity, TId> {
   protected constructor(
     protected readonly client: HttpClient,
     protected readonly basePath: string,
@@ -53,9 +61,10 @@ export abstract class BaseApiRepository<TEntity extends EntityWithId<TId>, TId>
   }
 }
 
-export abstract class BaseDbRepository<TEntity extends EntityWithId<TId>, TId>
-  implements DbRepository<TEntity, TId>
-{
+export abstract class BaseDbRepository<
+  TEntity extends EntityWithId<TId>,
+  TId
+> implements DbRepository<TEntity, TId> {
   protected constructor(
     protected readonly db: DatabaseClient,
     protected readonly logger: PlatformLogger,
@@ -64,12 +73,9 @@ export abstract class BaseDbRepository<TEntity extends EntityWithId<TId>, TId>
   ) {}
 
   public async findById(id: TId): Promise<TEntity | null> {
-    return this.db.queryOne(
-      `select * from ${this.tableName} where id = $1`,
-      [id],
-      this.mapRow,
-      { operationName: `${this.tableName}.findById` }
-    );
+    return this.db.queryOne(`select * from ${this.tableName} where id = $1`, [id], this.mapRow, {
+      operationName: `${this.tableName}.findById`
+    });
   }
 
   public abstract save(entity: TEntity): Promise<TEntity>;

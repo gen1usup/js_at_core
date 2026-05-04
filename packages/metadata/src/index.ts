@@ -1,4 +1,4 @@
-﻿import { z } from 'zod';
+import { z } from 'zod';
 import type { Capability, CapabilityMap, TestMetadata } from '@automation-platform/contracts';
 
 const metadataSchema = z.object({
@@ -47,7 +47,8 @@ const metadataSchema = z.object({
 
 export type MetadataDeclaration = z.input<typeof metadataSchema>;
 
-export const defineMetadata = (metadata: MetadataDeclaration): TestMetadata => metadataSchema.parse(metadata);
+export const defineMetadata = (metadata: MetadataDeclaration): TestMetadata =>
+  metadataSchema.parse(metadata);
 
 export const validateMetadata = (metadata: unknown): TestMetadata => metadataSchema.parse(metadata);
 

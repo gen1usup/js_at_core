@@ -1,4 +1,4 @@
-﻿import { z } from 'zod';
+import { z } from 'zod';
 import type {
   QueueClient,
   QueueDiagnosticsEntry,
@@ -8,7 +8,12 @@ import type {
   QueueWaitOptions
 } from '@automation-platform/contracts';
 import type { PlatformLogger } from '@automation-platform/contracts';
-import { QueueOperationError, createCorrelationId, nowIso, waitFor } from '@automation-platform/utils';
+import {
+  QueueOperationError,
+  createCorrelationId,
+  nowIso,
+  waitFor
+} from '@automation-platform/utils';
 
 const queueMessageSchema = z.object({
   id: z.string().min(1),
@@ -58,7 +63,10 @@ export class InMemoryQueueClient implements QueueClient {
     return message;
   }
 
-  public async poll<TPayload>(queueName: string, options: QueuePollOptions = {}): Promise<QueueMessage<TPayload>[]> {
+  public async poll<TPayload>(
+    queueName: string,
+    options: QueuePollOptions = {}
+  ): Promise<QueueMessage<TPayload>[]> {
     const queue = this.getQueue(queueName);
     const limit = options.limit ?? 10;
     const messages = queue.slice(0, limit);
@@ -137,7 +145,11 @@ export class QueueWaiter {
       timeoutMs: options.timeoutMs
     });
 
-    return this.waitForMessage(queue, (message) => message.correlationId === correlationId, options);
+    return this.waitForMessage(
+      queue,
+      (message) => message.correlationId === correlationId,
+      options
+    );
   }
 
   public async waitForProcessingCompletion<TStatus>(
@@ -163,18 +175,16 @@ export class QueueWaiter {
     resolver: () => Promise<{ completed: boolean; state: string }>,
     options: QueueWaitOptions
   ): Promise<{ completed: boolean; state: string }> {
-    return this.waitForProcessingCompletion(
-      resolver,
-      (status) => status.completed,
-      options
-    ).catch((error) => {
-      throw new QueueOperationError(`Background job did not complete: ${jobName}`, {
-        cause: error,
-        metadata: {
-          jobName
-        }
-      });
-    });
+    return this.waitForProcessingCompletion(resolver, (status) => status.completed, options).catch(
+      (error) => {
+        throw new QueueOperationError(`Background job did not complete: ${jobName}`, {
+          cause: error,
+          metadata: {
+            jobName
+          }
+        });
+      }
+    );
   }
 }
 

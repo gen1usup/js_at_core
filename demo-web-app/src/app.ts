@@ -22,7 +22,11 @@ class HttpError extends Error {
 
 const nowIso = (): string => new Date().toISOString();
 
-const sendJson = (response: ServerResponse, status: number, payload: Record<string, unknown>): void => {
+const sendJson = (
+  response: ServerResponse,
+  status: number,
+  payload: Record<string, unknown>
+): void => {
   response.statusCode = status;
   response.setHeader('content-type', 'application/json; charset=utf-8');
   response.end(`${JSON.stringify(payload)}\n`);

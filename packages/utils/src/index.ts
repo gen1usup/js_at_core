@@ -1,4 +1,4 @@
-﻿import { randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import type { Capability, CapabilityMap, RetryPolicy } from '@automation-platform/contracts';
 
 export interface ErrorDetails {
@@ -86,7 +86,7 @@ export const sleep = async (ms: number): Promise<void> => {
   if (ms <= 0) {
     return;
   }
-  await new Promise((resolve) => setTimeout(resolve, ms));
+  await new Promise((resolve) => setTimeout(resolve, ms)); // governance-allow hard-sleep: framework timer primitive
 };
 
 export interface WaitForOptions {
@@ -107,7 +107,7 @@ export const waitFor = async <T>(
     if (value) {
       return value;
     }
-    await sleep(pollingIntervalMs);
+    await sleep(pollingIntervalMs); // governance-allow hard-sleep: waitFor polling primitive
   }
 
   throw new TimeoutError(
@@ -133,7 +133,7 @@ export const retry = async <T>(
       if (attempt >= policy.maxAttempts || !isRetryable(error)) {
         break;
       }
-      await sleep(delayMs);
+      await sleep(delayMs); // governance-allow hard-sleep: retry backoff primitive
       delayMs = Math.round(delayMs * (policy.backoffFactor ?? 1));
     }
   }
@@ -198,7 +198,10 @@ export const assertCapability = (
   reason: string
 ): void => {
   if (!capabilityMap[capability]) {
-    throw new PlatformError('CAPABILITY_DISABLED', `Capability "${capability}" is disabled: ${reason}`);
+    throw new PlatformError(
+      'CAPABILITY_DISABLED',
+      `Capability "${capability}" is disabled: ${reason}`
+    );
   }
 };
 
@@ -208,5 +211,3 @@ export const asRecord = (value: unknown): Record<string, unknown> => {
   }
   return {};
 };
-
-

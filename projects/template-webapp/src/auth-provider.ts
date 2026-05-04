@@ -1,4 +1,4 @@
-﻿import type { AuthProvider, AuthSession, ExecutionContext } from '@automation-platform/contracts';
+import type { AuthProvider, AuthSession, ExecutionContext } from '@automation-platform/contracts';
 
 export class TemplateAuthProvider implements AuthProvider {
   public readonly name = 'template-auth-provider';

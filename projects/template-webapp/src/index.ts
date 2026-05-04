@@ -1,4 +1,4 @@
-﻿export * from './adapter';
+export * from './adapter';
 export * from './routes';
 export * from './selectors';
 export * from './auth-provider';

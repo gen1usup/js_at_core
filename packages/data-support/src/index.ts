@@ -1,5 +1,9 @@
-﻿import { z } from 'zod';
-import type { CleanupRegistry, ExecutionContext, ResourceRegistry } from '@automation-platform/contracts';
+import { z } from 'zod';
+import type {
+  CleanupRegistry,
+  ExecutionContext,
+  ResourceRegistry
+} from '@automation-platform/contracts';
 import type { PlatformLogger } from '@automation-platform/contracts';
 
 export const seedConfigSchema = z.object({
@@ -125,14 +129,12 @@ export class LifecycleEntitySupport {
     private readonly logger: PlatformLogger
   ) {}
 
-  public registerEntity(
-    params: {
-      id: string;
-      type: string;
-      payload: unknown;
-      cleanup: () => Promise<void>;
-    }
-  ): void {
+  public registerEntity(params: {
+    id: string;
+    type: string;
+    payload: unknown;
+    cleanup: () => Promise<void>;
+  }): void {
     this.resources.register({
       id: params.id,
       type: params.type,
@@ -165,7 +167,9 @@ export interface TemplateEntity {
   createdAtIso: string;
 }
 
-export const templateEntityBuilder = (generator: DeterministicDataGenerator): DataBuilder<TemplateEntity> =>
+export const templateEntityBuilder = (
+  generator: DeterministicDataGenerator
+): DataBuilder<TemplateEntity> =>
   new DataBuilder<TemplateEntity>({
     id: `ent-${generator.int(1000, 9999)}`,
     name: generator.string('entity-'),

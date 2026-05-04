@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env node
+#!/usr/bin/env node
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { Command } from 'commander';
@@ -334,5 +334,3 @@ if (require.main === module) {
     process.exitCode = 1;
   });
 }
-
-

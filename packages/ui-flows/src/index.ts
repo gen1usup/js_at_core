@@ -1,4 +1,4 @@
-﻿import { ComponentFactory } from '@automation-platform/ui-components';
+import { ComponentFactory } from '@automation-platform/ui-components';
 import type { UICore } from '@automation-platform/ui-core';
 import type { PlatformLogger } from '@automation-platform/contracts';
 
@@ -17,7 +17,11 @@ export class AuthFlow {
     private readonly namespace = 'auth'
   ) {}
 
-  public async login(username: string, password: string, options: LoginFlowOptions = {}): Promise<void> {
+  public async login(
+    username: string,
+    password: string,
+    options: LoginFlowOptions = {}
+  ): Promise<void> {
     const namespace = options.namespace ?? this.namespace;
     await this.ui.fill(options.usernameKey ?? 'username', username, namespace);
     await this.ui.fill(options.passwordKey ?? 'password', password, namespace);
@@ -123,11 +127,7 @@ export class SearchFilterSortFlow {
 export class FileTransferFlow {
   private readonly components: ComponentFactory;
 
-  public constructor(
-    ui: UICore,
-    logger: PlatformLogger,
-    namespace = 'files'
-  ) {
+  public constructor(ui: UICore, logger: PlatformLogger, namespace = 'files') {
     this.components = new ComponentFactory({ ui, logger, namespace });
   }
 
@@ -142,7 +142,10 @@ export class FileTransferFlow {
 }
 
 export class PermissionVisibilityFlow {
-  public constructor(private readonly ui: UICore, private readonly logger: PlatformLogger) {}
+  public constructor(
+    private readonly ui: UICore,
+    private readonly logger: PlatformLogger
+  ) {}
 
   public async expectVisible(key: string, namespace: string): Promise<void> {
     await this.ui.waitVisible(key, namespace);
@@ -154,4 +157,3 @@ export class PermissionVisibilityFlow {
     this.logger.info('Permission visibility verified', { key, namespace, expected: 'hidden' });
   }
 }
-

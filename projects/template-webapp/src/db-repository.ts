@@ -1,4 +1,4 @@
-﻿import type { PlatformLogger } from '@automation-platform/contracts';
+import type { PlatformLogger } from '@automation-platform/contracts';
 import type { DatabaseClient } from '@automation-platform/contracts';
 import { TemplateDbRepository } from '@automation-platform/repositories';
 

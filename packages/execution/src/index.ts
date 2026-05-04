@@ -1,4 +1,4 @@
-﻿import type {
+import type {
   CleanupRegistry,
   CleanupResult,
   CleanupTask,
@@ -10,7 +10,13 @@
   StepResult,
   TestMetadata
 } from '@automation-platform/contracts';
-import { CleanupError, createCorrelationId, createExecutionId, retry, TimeoutError } from '@automation-platform/utils';
+import {
+  CleanupError,
+  createCorrelationId,
+  createExecutionId,
+  retry,
+  TimeoutError
+} from '@automation-platform/utils';
 
 export interface CreateExecutionContextInput {
   projectName: string;
@@ -121,17 +127,14 @@ export class StepRunner {
     const startedAt = Date.now();
     const retryPolicy = options.retryPolicy ?? { maxAttempts: 1, delayMs: 0, backoffFactor: 1 };
 
-    const data = await retry(
-      async (attempt) => {
-        try {
-          return await withTimeout(handler(), options.timeoutMs, stepName);
-        } catch (error) {
-          await this.hooks.onStepError?.(this.context, stepName, error, attempt);
-          throw error;
-        }
-      },
-      retryPolicy
-    );
+    const data = await retry(async (attempt) => {
+      try {
+        return await withTimeout(handler(), options.timeoutMs, stepName);
+      } catch (error) {
+        await this.hooks.onStepError?.(this.context, stepName, error, attempt);
+        throw error;
+      }
+    }, retryPolicy);
 
     const durationMs = Date.now() - startedAt;
     await this.hooks.afterStep?.(this.context, stepName, durationMs);
@@ -162,6 +165,7 @@ export const withTimeout = async <T>(
 
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(
+      // governance-allow hard-sleep: operation timeout primitive
       () => reject(new TimeoutError(`Operation timed out: ${operationName} (${timeoutMs}ms)`)),
       timeoutMs
     );
@@ -212,4 +216,3 @@ export const runWithCleanup = async <T>(
     });
   }
 };
-

@@ -1,4 +1,4 @@
-﻿import { defineConfig, devices, type PlaywrightTestConfig } from '@playwright/test';
+import { defineConfig, devices, type PlaywrightTestConfig } from '@playwright/test';
 
 const externalBaseURL = process.env.BASE_URL ?? process.env.AP_BASE_URL;
 const baseURL = externalBaseURL ?? 'http://127.0.0.1:3010';

@@ -1,4 +1,4 @@
-﻿import axios, {
+import axios, {
   type AxiosError,
   type AxiosInstance,
   type AxiosRequestConfig,
@@ -6,8 +6,20 @@
   type RawAxiosResponseHeaders
 } from 'axios';
 import { z, type ZodSchema } from 'zod';
-import type { HttpClient, HttpRequest, HttpResponse, PlatformLogger, RetryPolicy } from '@automation-platform/contracts';
-import { ApiTransportError, ApiValidationError, maskSensitive, retry, waitFor } from '@automation-platform/utils';
+import type {
+  HttpClient,
+  HttpRequest,
+  HttpResponse,
+  PlatformLogger,
+  RetryPolicy
+} from '@automation-platform/contracts';
+import {
+  ApiTransportError,
+  ApiValidationError,
+  maskSensitive,
+  retry,
+  waitFor
+} from '@automation-platform/utils';
 
 export interface ApiClientConfig {
   baseUrl: string;

@@ -1,5 +1,10 @@
-﻿import { describe, expect, it } from 'vitest';
-import type { HttpClient, HttpRequest, HttpResponse, PlatformLogger } from '@automation-platform/contracts';
+import { describe, expect, it } from 'vitest';
+import type {
+  HttpClient,
+  HttpRequest,
+  HttpResponse,
+  PlatformLogger
+} from '@automation-platform/contracts';
 import { TemplateApiRepository } from './index';
 
 const noopLogger: PlatformLogger = {
@@ -22,7 +27,9 @@ class FakeHttpClient implements HttpClient {
     request: HttpRequest<TBody>
   ): Promise<HttpResponse<TResponse>> {
     if (request.method === 'POST') {
-      const body = request.body as { name?: string; status?: 'draft' | 'active' | 'archived' } | undefined;
+      const body = request.body as
+        | { name?: string; status?: 'draft' | 'active' | 'archived' }
+        | undefined;
       this.state = {
         id: '1',
         name: body?.name ?? 'entity',
@@ -66,4 +73,3 @@ describe('repositories', () => {
     expect(waited.status).toBe('active');
   });
 });
-

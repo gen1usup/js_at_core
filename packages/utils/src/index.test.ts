@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { retry, waitFor } from './index';
 
 describe('utils', () => {
@@ -26,12 +26,10 @@ describe('utils', () => {
 
   it('waits for async condition', async () => {
     let value = 0;
-    setTimeout(() => {
-      value = 5;
-    }, 5);
 
     const result = await waitFor(
       async () => {
+        value += 1;
         if (value === 5) {
           return value;
         }

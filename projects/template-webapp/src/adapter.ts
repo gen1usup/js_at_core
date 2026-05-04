@@ -1,4 +1,4 @@
-﻿import type { ProjectAdapter } from '@automation-platform/contracts';
+import type { ProjectAdapter } from '@automation-platform/contracts';
 import { TemplateAuthProvider } from './auth-provider';
 import { templateRoutes } from './routes';
 import { templateSelectorRegistry } from './selectors';

@@ -1,4 +1,4 @@
-﻿export type Primitive = string | number | boolean | null;
+export type Primitive = string | number | boolean | null;
 
 export type Capability =
   | 'ui'
@@ -187,11 +187,13 @@ export interface TestMetadata {
   suite: SuiteKind;
   capabilityRequirements?: Capability[] | undefined;
   environmentRequirements?: readonly string[] | undefined;
-  retryOverride?: {
-    maxAttempts?: number | undefined;
-    delayMs?: number | undefined;
-    backoffFactor?: number | undefined;
-  } | undefined;
+  retryOverride?:
+    | {
+        maxAttempts?: number | undefined;
+        delayMs?: number | undefined;
+        backoffFactor?: number | undefined;
+      }
+    | undefined;
   timeoutOverrideMs?: number | undefined;
 }
 
@@ -234,7 +236,13 @@ export interface UIElementState {
 }
 
 export interface UIDriver {
-  goto(url: string, options?: { timeoutMs?: number; waitUntil?: 'load' | 'domcontentloaded' | 'networkidle0' | 'networkidle2' }): Promise<void>;
+  goto(
+    url: string,
+    options?: {
+      timeoutMs?: number;
+      waitUntil?: 'load' | 'domcontentloaded' | 'networkidle0' | 'networkidle2';
+    }
+  ): Promise<void>;
   close(): Promise<void>;
   currentUrl(): Promise<string>;
   screenshot(path: string, options?: { fullPage?: boolean }): Promise<void>;
@@ -245,13 +253,21 @@ export interface UIDriver {
   type(selector: ResolvedSelector, value: string, options?: UIActionOptions): Promise<void>;
   clear(selector: ResolvedSelector, options?: UIActionOptions): Promise<void>;
   press(selector: ResolvedSelector, key: string, options?: UIActionOptions): Promise<void>;
-  select(selector: ResolvedSelector, value: string | string[], options?: UIActionOptions): Promise<void>;
+  select(
+    selector: ResolvedSelector,
+    value: string | string[],
+    options?: UIActionOptions
+  ): Promise<void>;
   check(selector: ResolvedSelector, options?: UIActionOptions): Promise<void>;
   uncheck(selector: ResolvedSelector, options?: UIActionOptions): Promise<void>;
   upload(selector: ResolvedSelector, filePath: string, options?: UIActionOptions): Promise<void>;
   text(selector: ResolvedSelector, options?: UIActionOptions): Promise<string>;
   value(selector: ResolvedSelector, options?: UIActionOptions): Promise<string>;
-  attribute(selector: ResolvedSelector, attribute: string, options?: UIActionOptions): Promise<string | null>;
+  attribute(
+    selector: ResolvedSelector,
+    attribute: string,
+    options?: UIActionOptions
+  ): Promise<string | null>;
   waitForVisible(selector: ResolvedSelector, options?: UIWaitOptions): Promise<void>;
   waitForHidden(selector: ResolvedSelector, options?: UIWaitOptions): Promise<void>;
   waitForExists(selector: ResolvedSelector, options?: UIWaitOptions): Promise<void>;
@@ -263,7 +279,13 @@ export interface UIComponent {
   isVisible(options?: UIWaitOptions): Promise<boolean>;
 }
 
-export interface HttpRequest<TBody = unknown, TQuery extends Record<string, Primitive | Primitive[] | undefined> = Record<string, Primitive | Primitive[] | undefined>> {
+export interface HttpRequest<
+  TBody = unknown,
+  TQuery extends Record<string, Primitive | Primitive[] | undefined> = Record<
+    string,
+    Primitive | Primitive[] | undefined
+  >
+> {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   path: string;
   query?: TQuery | undefined;
@@ -281,7 +303,14 @@ export interface HttpResponse<TData = unknown> {
 }
 
 export interface HttpClient {
-  send<TResponse, TBody = unknown, TQuery extends Record<string, Primitive | Primitive[] | undefined> = Record<string, Primitive | Primitive[] | undefined>>(
+  send<
+    TResponse,
+    TBody = unknown,
+    TQuery extends Record<string, Primitive | Primitive[] | undefined> = Record<
+      string,
+      Primitive | Primitive[] | undefined
+    >
+  >(
     request: HttpRequest<TBody, TQuery>
   ): Promise<HttpResponse<TResponse>>;
 }
@@ -299,8 +328,18 @@ export interface DbQueryOptions {
 }
 
 export interface DatabaseClient {
-  queryOne<T>(sql: string, params: readonly unknown[], mapper?: (row: unknown) => T, options?: DbQueryOptions): Promise<T | null>;
-  queryMany<T>(sql: string, params: readonly unknown[], mapper?: (row: unknown) => T, options?: DbQueryOptions): Promise<T[]>;
+  queryOne<T>(
+    sql: string,
+    params: readonly unknown[],
+    mapper?: (row: unknown) => T,
+    options?: DbQueryOptions
+  ): Promise<T | null>;
+  queryMany<T>(
+    sql: string,
+    params: readonly unknown[],
+    mapper?: (row: unknown) => T,
+    options?: DbQueryOptions
+  ): Promise<T[]>;
   scalar<T>(sql: string, params: readonly unknown[], options?: DbQueryOptions): Promise<T | null>;
   exists(sql: string, params: readonly unknown[], options?: DbQueryOptions): Promise<boolean>;
   execute(sql: string, params: readonly unknown[], options?: DbQueryOptions): Promise<number>;
@@ -378,7 +417,14 @@ export interface PlatformPlugin {
   name: string;
   version: string;
   enabled?: boolean | undefined;
-  hooks?: Partial<Record<PluginHookName, (context: ExecutionContext, payload: PluginHookPayload) => Promise<void> | void>> | undefined;
+  hooks?:
+    | Partial<
+        Record<
+          PluginHookName,
+          (context: ExecutionContext, payload: PluginHookPayload) => Promise<void> | void
+        >
+      >
+    | undefined;
 }
 
 export interface ProjectAdapter {
@@ -404,6 +450,3 @@ export interface CliValidationResult {
   errors: string[];
   warnings: string[];
 }
-
-
-

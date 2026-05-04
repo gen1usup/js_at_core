@@ -1,4 +1,4 @@
-﻿import type { UIComponent, UIWaitOptions } from '@automation-platform/contracts';
+import type { UIComponent, UIWaitOptions } from '@automation-platform/contracts';
 import type { PlatformLogger } from '@automation-platform/contracts';
 import type { UICore } from '@automation-platform/ui-core';
 
@@ -324,7 +324,12 @@ export class ComponentFactory {
   }
 
   public pagination(key: string): PaginationComponent {
-    return new PaginationComponent(this.options.ui, this.options.logger, key, this.options.namespace);
+    return new PaginationComponent(
+      this.options.ui,
+      this.options.logger,
+      key,
+      this.options.namespace
+    );
   }
 
   public header(key: string): HeaderComponent {
@@ -336,20 +341,33 @@ export class ComponentFactory {
   }
 
   public fileUploader(key: string): FileUploaderComponent {
-    return new FileUploaderComponent(this.options.ui, this.options.logger, key, this.options.namespace);
+    return new FileUploaderComponent(
+      this.options.ui,
+      this.options.logger,
+      key,
+      this.options.namespace
+    );
   }
 
   public filterPanel(key: string): FilterPanelComponent {
-    return new FilterPanelComponent(this.options.ui, this.options.logger, key, this.options.namespace);
+    return new FilterPanelComponent(
+      this.options.ui,
+      this.options.logger,
+      key,
+      this.options.namespace
+    );
   }
 
   public datePicker(key: string): DatePickerComponent {
-    return new DatePickerComponent(this.options.ui, this.options.logger, key, this.options.namespace);
+    return new DatePickerComponent(
+      this.options.ui,
+      this.options.logger,
+      key,
+      this.options.namespace
+    );
   }
 
   public loader(key: string): LoaderComponent {
     return new LoaderComponent(this.options.ui, this.options.logger, key, this.options.namespace);
   }
 }
-
-

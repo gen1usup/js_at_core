@@ -31,7 +31,8 @@ const verifyPassword = (plainText: string, encodedHash: string): boolean => {
 
 const hashToken = (token: string): string => createHash('sha256').update(token).digest('hex');
 
-const generateAccessToken = (): string => `${randomBytes(24).toString('hex')}${Date.now().toString(16)}`;
+const generateAccessToken = (): string =>
+  `${randomBytes(24).toString('hex')}${Date.now().toString(16)}`;
 
 const toPublicUser = (record: UserRecord): PublicUser => ({
   id: record.id,

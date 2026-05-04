@@ -1,49 +1,43 @@
 # Demo Web App
 
-Изолированное демонстрационное приложение (API + auth + file DB + queue + worker).
+Local demonstration app used by API, async job and Playwright browser e2e showcases.
 
-Важно:
-- Приложение не использует `@automation-platform/*` пакеты.
-- Оно лежит отдельно от core (`demo-web-app/`) и может быть удалено без влияния на жизнеспособность core.
+It is intentionally isolated from `@automation-platform/*` packages. The app can be removed without changing the core packages; it exists to make the starter kit runnable without external services.
 
-## Стек
-- Node.js 20+
-- TypeScript
-- HTTP server на стандартном модуле `node:http`
-- Две файловые БД (JSON): `auth-db.json` и `app-db.json`
-- In-memory очередь и background worker
+## Purpose
 
-## Что демонстрирует
-- Регистрация и логин пользователя
-- Bearer token авторизация
-- Создание задачи через API
-- Асинхронная обработка задачи worker-ом через очередь
-- DLQ (dead-letter queue) при ошибке обработки
+The app gives tests a realistic but small target with authentication, an HTTP API, JSON file storage, an in-memory queue and a background worker.
 
-## Быстрый запуск (из корня репозитория)
+## What it demonstrates
 
-1. Проверка компиляции демо:
+- user registration and login;
+- Bearer token authorization;
+- task creation through API and browser UI;
+- async task processing through a queue worker;
+- failed task path through `[fail]` title marker and DLQ-style endpoint;
+- local state reset through data directory cleanup.
+
+## Start locally
+
 ```bash
+npm install
 npx tsc -p demo-web-app/tsconfig.json --noEmit
-```
-
-2. Запуск демо-сервера:
-```bash
 npx tsx demo-web-app/src/server.ts
 ```
 
-3. Открыть UI:
-- `http://127.0.0.1:3010`
+Default URL: `http://127.0.0.1:3010`.
 
-## Запуск сценария smoke (авто-проверка)
-Сценарий сам поднимает приложение на случайном порту, проходит register/login/createTask/waitCompleted и завершает процесс.
+## API smoke scenario without browser
+
+This scenario starts the app on a random port, performs register/login/create task/wait completed, then stops the app.
 
 ```bash
 npx tsx demo-web-app/src/demo-scenario.ts
 ```
 
-## Playwright browser e2e из корня
-Playwright e2e проверяет именно браузерный UI: открывает главную страницу, регистрирует пользователя, логинится и создаёт задачу через кнопки и поля формы.
+## Playwright browser e2e from repository root
+
+The browser test opens the UI, registers a unique user, logs in, creates a task and verifies the JSON output through Playwright locators.
 
 ```bash
 npm run test:e2e
@@ -51,73 +45,64 @@ npm run test:e2e:headed
 npm run test:e2e:debug
 ```
 
-Если `BASE_URL` или `AP_BASE_URL` не заданы, Playwright сам запускает этот demo server на `http://127.0.0.1:3010`. Для проверки уже запущенного стенда задайте URL явно:
+If `BASE_URL` or `AP_BASE_URL` is not set, `playwright.config.ts` starts this app through Playwright `webServer` and uses `http://127.0.0.1:3010`.
+
+To run against an already started app:
 
 ```bash
-BASE_URL=http://localhost:3000 npm run test:e2e
+BASE_URL=http://127.0.0.1:3010 npm run test:e2e
 ```
 
-Отличие от `demo-scenario.ts`: `demo-scenario.ts` проверяет API flow без браузера, а `npm run test:e2e` проверяет UI flow через Playwright.
-
-## Конфигурация через env
-Можно переопределить параметры перед запуском.
-
-- `DEMO_HOST` (по умолчанию `127.0.0.1`)
-- `DEMO_PORT` (по умолчанию `3010`)
-- `DEMO_DATA_DIR` (по умолчанию `./demo-web-app/data`)
-- `DEMO_QUEUE_NAME` (по умолчанию `demo.task.jobs`)
-- `DEMO_TOKEN_TTL_MS` (по умолчанию `3600000`)
-- `DEMO_WORKER_POLL_MS` (по умолчанию `250`)
-
-Пример для PowerShell:
+On PowerShell:
 
 ```powershell
-$env:DEMO_PORT='3020'
-$env:DEMO_DATA_DIR='C:\temp\demo-web-data'
-npx tsx demo-web-app/src/server.ts
+$env:BASE_URL='http://127.0.0.1:3010'
+npm run test:e2e
 ```
 
-## Основные API
+## Configuration
 
-### `POST /api/auth/register`
-```json
-{
-  "username": "demo-user",
-  "password": "P@ssw0rd123"
-}
-```
+| Env var               | Default               | Meaning                                          |
+| --------------------- | --------------------- | ------------------------------------------------ |
+| `DEMO_HOST`           | `127.0.0.1`           | Host to bind                                     |
+| `DEMO_PORT`           | `3010`                | Port to bind; tests can pass `0` for random port |
+| `DEMO_DATA_DIR`       | `./demo-web-app/data` | JSON file data directory                         |
+| `DEMO_QUEUE_NAME`     | `demo.task.jobs`      | Queue name used by worker                        |
+| `DEMO_TOKEN_TTL_MS`   | `3600000`             | Login token TTL                                  |
+| `DEMO_WORKER_POLL_MS` | `250`                 | Worker polling interval                          |
 
-### `POST /api/auth/login`
-```json
-{
-  "username": "demo-user",
-  "password": "P@ssw0rd123"
-}
-```
+## Endpoints
 
-### `GET /api/auth/me`
-Требует заголовок `Authorization: Bearer <token>`.
+| Method/path               | Auth           | Purpose                        |
+| ------------------------- | -------------- | ------------------------------ |
+| `GET /`                   | no             | Browser demo UI                |
+| `GET /health`             | no             | Health and queue size snapshot |
+| `POST /api/auth/register` | no             | Create user                    |
+| `POST /api/auth/login`    | no             | Create token                   |
+| `POST /api/auth/logout`   | token optional | Invalidate token when provided |
+| `GET /api/auth/me`        | yes            | Current user                   |
+| `POST /api/tasks`         | yes            | Create queued task             |
+| `GET /api/tasks`          | yes            | List current user tasks        |
+| `GET /api/tasks/:id`      | yes            | Get one task                   |
+| `GET /api/queue/metrics`  | admin only     | Queue sizes                    |
+| `GET /api/queue/dlq`      | yes            | Failed tasks for current user  |
 
-### `POST /api/tasks`
-```json
-{
-  "title": "process order #123"
-}
-```
+## Data and reset
 
-Если в заголовке `x-correlation-id` не передан id, сервер создаст его сам.
+Default data files:
 
-### `GET /api/tasks`
-Список задач текущего пользователя.
+- `demo-web-app/data/auth-db.json`
+- `demo-web-app/data/app-db.json`
 
-### `GET /api/tasks/:id`
-Детали задачи текущего пользователя.
+To reset local state, stop the app and delete `demo-web-app/data/`, or set `DEMO_DATA_DIR` to a temporary directory for a single run.
 
-### `GET /api/queue/dlq`
-Список задач пользователя, попавших в failed.
+Automated tests usually pass their own temporary directory under `artifacts/` and remove it during cleanup.
 
-## Как вызвать падение в очередь DLQ
-Создайте задачу с маркером `[fail]` в title:
+## Queue and failed path
+
+Creating a task publishes a message to the in-memory queue. The worker marks normal tasks as `completed`.
+
+To force a failed task, include `[fail]` in the task title:
 
 ```json
 {
@@ -125,30 +110,18 @@ npx tsx demo-web-app/src/server.ts
 }
 ```
 
-Worker пометит её как `failed` и отправит событие в DLQ.
+The worker marks that task as `failed`; `GET /api/queue/dlq` exposes failed tasks for the current user.
 
-## Формат данных
-- `demo-web-app/data/auth-db.json`: пользователи и сессии
-- `demo-web-app/data/app-db.json`: задачи
+## Tests that use this app
 
-## Удаление демо
-Для полного удаления:
-1. Удалите папку `demo-web-app/`.
-2. Core проект продолжит работать без изменений, так как зависимости и сборка core не связаны с этим демо.
+- `projects/core-showcase-tests/tests/api-client-showcase.test.ts` for a simple API client scenario.
+- `projects/core-showcase-tests/tests/integration-real-demo.test.ts` for API + async job/polling + diagnostics.
+- `tests/e2e/smoke.spec.ts` for Playwright browser e2e.
+- `demo-web-app/src/demo-scenario.ts` for a standalone API smoke run.
 
-## Отдельный запуск как автономного проекта
-Если хотите запускать демо полностью отдельно от core-инструментов:
+## Limitations
 
-```bash
-cd demo-web-app
-npm install
-npm run build
-npm run dev
-```
-
-## Интеграция с core тестами
-В core добавлен отдельный real integration test, который поднимает это demo-приложение и проверяет связку core API/diagnostics/plugins/cleanup:
-
-- `projects/core-showcase-tests/tests/integration-real-demo.test.ts`
-
-Этот тест автоматически пропускается (`skip`), если `demo-web-app` отсутствует.
+- The app is a test target, not a production web app template.
+- Data storage is JSON files, not a database server.
+- The queue is in-memory and exists only for the process lifetime.
+- Authentication is intentionally simple for demo purposes.

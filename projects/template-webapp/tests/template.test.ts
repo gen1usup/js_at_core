@@ -1,5 +1,10 @@
-﻿import { describe, expect, it } from 'vitest';
-import type { ExecutionContext, HttpClient, HttpRequest, HttpResponse } from '@automation-platform/contracts';
+import { describe, expect, it } from 'vitest';
+import type {
+  ExecutionContext,
+  HttpClient,
+  HttpRequest,
+  HttpResponse
+} from '@automation-platform/contracts';
 import { createLogger } from '@automation-platform/logger';
 import { InMemoryQueueClient } from '@automation-platform/queue-core';
 import { TemplateWebApiRepository } from '../src/api-repository';
@@ -11,7 +16,9 @@ class FakeHttpClient implements HttpClient {
   private createdCount = 0;
   private status: 'draft' | 'active' | 'archived' = 'draft';
 
-  public async send<TResponse, TBody = unknown>(request: HttpRequest<TBody>): Promise<HttpResponse<TResponse>> {
+  public async send<TResponse, TBody = unknown>(
+    request: HttpRequest<TBody>
+  ): Promise<HttpResponse<TResponse>> {
     if (request.method === 'POST') {
       this.createdCount += 1;
     }
@@ -91,7 +98,13 @@ describe('template-webapp', () => {
     const apiRepository = new TemplateWebApiRepository(new FakeHttpClient(), logger);
     const dbRepository = new TemplateWebDbRepository(new FakeDbClient(), logger);
     const queueClient = new InMemoryQueueClient(logger);
-    const gateway = new TemplateWebGateway(apiRepository, dbRepository, queueClient, context, logger);
+    const gateway = new TemplateWebGateway(
+      apiRepository,
+      dbRepository,
+      queueClient,
+      context,
+      logger
+    );
 
     const result = await runQueueAwareScenario({
       gateway,
@@ -104,4 +117,3 @@ describe('template-webapp', () => {
     expect(result.queueMessageId.length).toBeGreaterThan(0);
   });
 });
-

@@ -1,4 +1,4 @@
-﻿import fs from 'node:fs/promises';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import type {
@@ -26,8 +26,15 @@ import { TemplateEntityGateway } from '@automation-platform/gateways';
 import { createLogger } from '@automation-platform/logger';
 import { defineMetadata, metadataSupportsCapabilities } from '@automation-platform/metadata';
 import { DiagnosticsReportPlugin, PluginManager } from '@automation-platform/plugins';
-import { InMemoryDeadLetterQueueAdapter, InMemoryQueueClient } from '@automation-platform/queue-core';
-import { TemplateApiRepository, TemplateDbRepository, type TemplateEntity } from '@automation-platform/repositories';
+import {
+  InMemoryDeadLetterQueueAdapter,
+  InMemoryQueueClient
+} from '@automation-platform/queue-core';
+import {
+  TemplateApiRepository,
+  TemplateDbRepository,
+  type TemplateEntity
+} from '@automation-platform/repositories';
 import { NamespacedSelectorRegistry, SelectorBuilder } from '@automation-platform/selectors';
 import { UICore } from '@automation-platform/ui-core';
 import { ComponentFactory } from '@automation-platform/ui-components';
@@ -37,7 +44,9 @@ class FakeHttpClient implements HttpClient {
   private sequence = 0;
   private readonly reads = new Map<string, number>();
 
-  public async send<TResponse, TBody = unknown>(request: HttpRequest<TBody>): Promise<HttpResponse<TResponse>> {
+  public async send<TResponse, TBody = unknown>(
+    request: HttpRequest<TBody>
+  ): Promise<HttpResponse<TResponse>> {
     if (request.path === '/auth/login' && request.method === 'POST') {
       return {
         status: 200,
@@ -118,7 +127,11 @@ class FakeHttpClient implements HttpClient {
 class FakeDatabaseClient implements DatabaseClient {
   private readonly entities = new Map<string, TemplateEntity>();
 
-  public async queryOne<T>(sql: string, params: readonly unknown[], mapper?: (row: unknown) => T): Promise<T | null> {
+  public async queryOne<T>(
+    sql: string,
+    params: readonly unknown[],
+    mapper?: (row: unknown) => T
+  ): Promise<T | null> {
     if (!sql.toLowerCase().includes('template_entities')) {
       return null;
     }
@@ -154,7 +167,11 @@ class FakeDatabaseClient implements DatabaseClient {
     return this.entities.has(String(params[0] ?? ''));
   }
 
-  public async execute(sql: string, params: readonly unknown[], _options?: DbQueryOptions): Promise<number> {
+  public async execute(
+    sql: string,
+    params: readonly unknown[],
+    _options?: DbQueryOptions
+  ): Promise<number> {
     const normalized = sql.toLowerCase();
 
     if (normalized.includes('insert into template_entities')) {
@@ -216,11 +233,18 @@ class FakeUiDriver implements UIDriver {
   public async clear(selector: ResolvedSelector): Promise<void> {
     this.values.set(`${selector.namespace}.${selector.key}`, '');
   }
-  public async press(_selector: ResolvedSelector, _key: string, _options?: UIActionOptions): Promise<void> {
+  public async press(
+    _selector: ResolvedSelector,
+    _key: string,
+    _options?: UIActionOptions
+  ): Promise<void> {
     return;
   }
   public async select(selector: ResolvedSelector, value: string | string[]): Promise<void> {
-    this.values.set(`${selector.namespace}.${selector.key}`, Array.isArray(value) ? value.join(',') : value);
+    this.values.set(
+      `${selector.namespace}.${selector.key}`,
+      Array.isArray(value) ? value.join(',') : value
+    );
   }
   public async check(selector: ResolvedSelector): Promise<void> {
     this.values.set(`${selector.namespace}.${selector.key}.checked`, 'true');
@@ -247,7 +271,10 @@ class FakeUiDriver implements UIDriver {
     return this.values.get(`${selector.namespace}.${selector.key}.checked`) ?? null;
   }
 
-  public async waitForVisible(_selector: ResolvedSelector, _options?: UIWaitOptions): Promise<void> {
+  public async waitForVisible(
+    _selector: ResolvedSelector,
+    _options?: UIWaitOptions
+  ): Promise<void> {
     return;
   }
 
@@ -322,7 +349,13 @@ describe('core capabilities showcase', () => {
     const dbRepository = new TemplateDbRepository(new FakeDatabaseClient(), context.logger);
     const queueClient = new InMemoryQueueClient(context.logger);
 
-    const gateway = new TemplateEntityGateway(apiRepository, dbRepository, queueClient, context, context.logger);
+    const gateway = new TemplateEntityGateway(
+      apiRepository,
+      dbRepository,
+      queueClient,
+      context,
+      context.logger
+    );
 
     const created = await stepRunner.run('gateway.create', async () =>
       gateway.create({
@@ -483,4 +516,3 @@ describe('core capabilities showcase', () => {
     expect(reportRaw).toContain(context.executionId);
   });
 });
-

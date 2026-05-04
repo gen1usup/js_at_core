@@ -1,4 +1,4 @@
-﻿import path from 'node:path';
+import path from 'node:path';
 import dotenv from 'dotenv';
 import { z } from 'zod';
 import type { CapabilityMap, FeatureFlagMap, LogLevel } from '@automation-platform/contracts';
@@ -434,7 +434,10 @@ export const loadPlatformConfig = (options: ConfigLoaderOptions = {}): PlatformC
   const envInput = options.env ?? process.env;
   const withEnv = fromEnv(envInput);
   const withBase = options.base
-    ? deepMerge(withEnv as Record<string, unknown>, options.base as DeepPartial<Record<string, unknown>>)
+    ? deepMerge(
+        withEnv as Record<string, unknown>,
+        options.base as DeepPartial<Record<string, unknown>>
+      )
     : (withEnv as Record<string, unknown>);
   const withEnvironment = options.environment
     ? deepMerge(
@@ -443,7 +446,10 @@ export const loadPlatformConfig = (options: ConfigLoaderOptions = {}): PlatformC
       )
     : withBase;
   const withProject = options.project
-    ? deepMerge(withEnvironment as Record<string, unknown>, options.project as DeepPartial<Record<string, unknown>>)
+    ? deepMerge(
+        withEnvironment as Record<string, unknown>,
+        options.project as DeepPartial<Record<string, unknown>>
+      )
     : withEnvironment;
 
   return normalizePaths(validateConfig(withProject));

@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import type { PlatformLogger } from '@automation-platform/contracts';
 import { InMemoryDeadLetterQueueAdapter, InMemoryQueueClient, QueueWaiter } from './index';
 

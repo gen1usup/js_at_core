@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import type {
   CleanupRegistry,
   DatabaseClient,
@@ -10,7 +10,11 @@ import type {
   QueueClient,
   ResourceRegistry
 } from '@automation-platform/contracts';
-import { TemplateApiRepository, TemplateDbRepository, type TemplateEntity } from '@automation-platform/repositories';
+import {
+  TemplateApiRepository,
+  TemplateDbRepository,
+  type TemplateEntity
+} from '@automation-platform/repositories';
 import { InMemoryQueueClient } from '@automation-platform/queue-core';
 import { TemplateEntityGateway } from './index';
 

@@ -1,4 +1,14 @@
-﻿import { chromium, type Browser, type BrowserContext, type ConsoleMessage, type Dialog, type Locator, type Page, type Request, type Response } from '@playwright/test';
+import {
+  chromium,
+  type Browser,
+  type BrowserContext,
+  type ConsoleMessage,
+  type Dialog,
+  type Locator,
+  type Page,
+  type Request,
+  type Response
+} from 'playwright';
 import type {
   ExecutionContext,
   ResolvedSelector,
@@ -34,7 +44,11 @@ export interface DriverDiagnosticsSnapshot {
 
 export class PlaywrightUiDriver implements UIDriver, UIDiagnosticsProvider {
   private readonly consoleEntries: Array<{ type: string; text: string }> = [];
-  private readonly failedRequests: Array<{ url: string; method: string; errorText?: string | undefined }> = [];
+  private readonly failedRequests: Array<{
+    url: string;
+    method: string;
+    errorText?: string | undefined;
+  }> = [];
   private readonly responses: Array<{ url: string; status: number; ok: boolean }> = [];
   private lastStep?: string;
 
@@ -147,7 +161,11 @@ export class PlaywrightUiDriver implements UIDriver, UIDiagnosticsProvider {
     );
   }
 
-  public async fill(selector: ResolvedSelector, value: string, options?: UIActionOptions): Promise<void> {
+  public async fill(
+    selector: ResolvedSelector,
+    value: string,
+    options?: UIActionOptions
+  ): Promise<void> {
     await this.withAction(
       'fill',
       selector,
@@ -169,18 +187,29 @@ export class PlaywrightUiDriver implements UIDriver, UIDiagnosticsProvider {
     );
   }
 
-  public async type(selector: ResolvedSelector, value: string, options?: UIActionOptions): Promise<void> {
+  public async type(
+    selector: ResolvedSelector,
+    value: string,
+    options?: UIActionOptions
+  ): Promise<void> {
     await this.withAction(
       'type',
       selector,
       async () => {
-        await this.locatorFor(selector).pressSequentially(value, this.withTimeout(options?.timeoutMs));
+        await this.locatorFor(selector).pressSequentially(
+          value,
+          this.withTimeout(options?.timeoutMs)
+        );
       },
       options
     );
   }
 
-  public async press(selector: ResolvedSelector, key: string, options?: UIActionOptions): Promise<void> {
+  public async press(
+    selector: ResolvedSelector,
+    key: string,
+    options?: UIActionOptions
+  ): Promise<void> {
     await this.withAction(
       'press',
       selector,
@@ -228,12 +257,19 @@ export class PlaywrightUiDriver implements UIDriver, UIDiagnosticsProvider {
     );
   }
 
-  public async upload(selector: ResolvedSelector, filePath: string, options?: UIActionOptions): Promise<void> {
+  public async upload(
+    selector: ResolvedSelector,
+    filePath: string,
+    options?: UIActionOptions
+  ): Promise<void> {
     await this.withAction(
       'upload',
       selector,
       async () => {
-        await this.locatorFor(selector).setInputFiles(filePath, this.withTimeout(options?.timeoutMs));
+        await this.locatorFor(selector).setInputFiles(
+          filePath,
+          this.withTimeout(options?.timeoutMs)
+        );
       },
       options
     );
@@ -243,7 +279,10 @@ export class PlaywrightUiDriver implements UIDriver, UIDiagnosticsProvider {
     return this.withAction(
       'text',
       selector,
-      async () => (await this.locatorFor(selector).textContent(this.withTimeout(options?.timeoutMs)))?.trim() ?? '',
+      async () =>
+        (
+          await this.locatorFor(selector).textContent(this.withTimeout(options?.timeoutMs))
+        )?.trim() ?? '',
       options
     );
   }
@@ -265,21 +304,40 @@ export class PlaywrightUiDriver implements UIDriver, UIDiagnosticsProvider {
     return this.withAction(
       'attribute',
       selector,
-      async () => this.locatorFor(selector).getAttribute(attribute, this.withTimeout(options?.timeoutMs)),
+      async () =>
+        this.locatorFor(selector).getAttribute(attribute, this.withTimeout(options?.timeoutMs)),
       options
     );
   }
 
-  public async waitForVisible(selector: ResolvedSelector, options: UIWaitOptions = {}): Promise<void> {
-    await this.locatorFor(selector).waitFor({ state: 'visible', timeout: options.timeoutMs ?? 10_000 });
+  public async waitForVisible(
+    selector: ResolvedSelector,
+    options: UIWaitOptions = {}
+  ): Promise<void> {
+    await this.locatorFor(selector).waitFor({
+      state: 'visible',
+      timeout: options.timeoutMs ?? 10_000
+    });
   }
 
-  public async waitForHidden(selector: ResolvedSelector, options: UIWaitOptions = {}): Promise<void> {
-    await this.locatorFor(selector).waitFor({ state: 'hidden', timeout: options.timeoutMs ?? 10_000 });
+  public async waitForHidden(
+    selector: ResolvedSelector,
+    options: UIWaitOptions = {}
+  ): Promise<void> {
+    await this.locatorFor(selector).waitFor({
+      state: 'hidden',
+      timeout: options.timeoutMs ?? 10_000
+    });
   }
 
-  public async waitForExists(selector: ResolvedSelector, options: UIWaitOptions = {}): Promise<void> {
-    await this.locatorFor(selector).waitFor({ state: 'attached', timeout: options.timeoutMs ?? 10_000 });
+  public async waitForExists(
+    selector: ResolvedSelector,
+    options: UIWaitOptions = {}
+  ): Promise<void> {
+    await this.locatorFor(selector).waitFor({
+      state: 'attached',
+      timeout: options.timeoutMs ?? 10_000
+    });
   }
 
   public async evaluate<TOutput>(expression: () => TOutput): Promise<TOutput> {
@@ -447,28 +505,25 @@ export class PlaywrightUiDriver implements UIDriver, UIDiagnosticsProvider {
 
     this.lastStep = `${actionName}:${selector.namespace}.${selector.key}`;
 
-    return retry(
-      async () => {
-        try {
-          const startedAt = Date.now();
-          const result = await callback();
-          this.logger.debug('UI action complete', {
-            actionName,
+    return retry(async () => {
+      try {
+        const startedAt = Date.now();
+        const result = await callback();
+        this.logger.debug('UI action complete', {
+          actionName,
+          selector,
+          durationMs: Date.now() - startedAt
+        });
+        return result;
+      } catch (error) {
+        throw new UIActionError(`UI action failed: ${actionName}`, {
+          cause: error,
+          metadata: {
             selector,
-            durationMs: Date.now() - startedAt
-          });
-          return result;
-        } catch (error) {
-          throw new UIActionError(`UI action failed: ${actionName}`, {
-            cause: error,
-            metadata: {
-              selector,
-              actionName
-            }
-          });
-        }
-      },
-      retryPolicy
-    );
+            actionName
+          }
+        });
+      }
+    }, retryPolicy);
   }
 }

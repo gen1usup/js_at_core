@@ -1,4 +1,4 @@
-﻿import type { PlatformConfig } from '@automation-platform/config';
+import type { PlatformConfig } from '@automation-platform/config';
 
 export const templateProjectConfigOverride: Partial<PlatformConfig> = {
   projectName: 'template-webapp',

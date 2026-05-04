@@ -1,4 +1,4 @@
-﻿import type {
+import type {
   ExecutionContext,
   ResolvedSelector,
   RetryPolicy,
@@ -51,15 +51,28 @@ export class UICore {
   }
 
   public async click(key: string, namespace = 'common', options?: UIActionOptions): Promise<void> {
-    await this.options.driver.click(this.resolveSelector(key, namespace), this.withDefaults(options));
+    await this.options.driver.click(
+      this.resolveSelector(key, namespace),
+      this.withDefaults(options)
+    );
   }
 
-  public async doubleClick(key: string, namespace = 'common', options?: UIActionOptions): Promise<void> {
-    await this.options.driver.doubleClick(this.resolveSelector(key, namespace), this.withDefaults(options));
+  public async doubleClick(
+    key: string,
+    namespace = 'common',
+    options?: UIActionOptions
+  ): Promise<void> {
+    await this.options.driver.doubleClick(
+      this.resolveSelector(key, namespace),
+      this.withDefaults(options)
+    );
   }
 
   public async hover(key: string, namespace = 'common', options?: UIActionOptions): Promise<void> {
-    await this.options.driver.hover(this.resolveSelector(key, namespace), this.withDefaults(options));
+    await this.options.driver.hover(
+      this.resolveSelector(key, namespace),
+      this.withDefaults(options)
+    );
   }
 
   public async fill(
@@ -68,11 +81,18 @@ export class UICore {
     namespace = 'common',
     options?: UIActionOptions
   ): Promise<void> {
-    await this.options.driver.fill(this.resolveSelector(key, namespace), value, this.withDefaults(options));
+    await this.options.driver.fill(
+      this.resolveSelector(key, namespace),
+      value,
+      this.withDefaults(options)
+    );
   }
 
   public async clear(key: string, namespace = 'common', options?: UIActionOptions): Promise<void> {
-    await this.options.driver.clear(this.resolveSelector(key, namespace), this.withDefaults(options));
+    await this.options.driver.clear(
+      this.resolveSelector(key, namespace),
+      this.withDefaults(options)
+    );
   }
 
   public async type(
@@ -81,7 +101,11 @@ export class UICore {
     namespace = 'common',
     options?: UIActionOptions
   ): Promise<void> {
-    await this.options.driver.type(this.resolveSelector(key, namespace), value, this.withDefaults(options));
+    await this.options.driver.type(
+      this.resolveSelector(key, namespace),
+      value,
+      this.withDefaults(options)
+    );
   }
 
   public async press(
@@ -103,15 +127,29 @@ export class UICore {
     namespace = 'common',
     options?: UIActionOptions
   ): Promise<void> {
-    await this.options.driver.select(this.resolveSelector(key, namespace), value, this.withDefaults(options));
+    await this.options.driver.select(
+      this.resolveSelector(key, namespace),
+      value,
+      this.withDefaults(options)
+    );
   }
 
   public async check(key: string, namespace = 'common', options?: UIActionOptions): Promise<void> {
-    await this.options.driver.check(this.resolveSelector(key, namespace), this.withDefaults(options));
+    await this.options.driver.check(
+      this.resolveSelector(key, namespace),
+      this.withDefaults(options)
+    );
   }
 
-  public async uncheck(key: string, namespace = 'common', options?: UIActionOptions): Promise<void> {
-    await this.options.driver.uncheck(this.resolveSelector(key, namespace), this.withDefaults(options));
+  public async uncheck(
+    key: string,
+    namespace = 'common',
+    options?: UIActionOptions
+  ): Promise<void> {
+    await this.options.driver.uncheck(
+      this.resolveSelector(key, namespace),
+      this.withDefaults(options)
+    );
   }
 
   public async upload(
@@ -128,11 +166,21 @@ export class UICore {
   }
 
   public async text(key: string, namespace = 'common', options?: UIActionOptions): Promise<string> {
-    return this.options.driver.text(this.resolveSelector(key, namespace), this.withDefaults(options));
+    return this.options.driver.text(
+      this.resolveSelector(key, namespace),
+      this.withDefaults(options)
+    );
   }
 
-  public async value(key: string, namespace = 'common', options?: UIActionOptions): Promise<string> {
-    return this.options.driver.value(this.resolveSelector(key, namespace), this.withDefaults(options));
+  public async value(
+    key: string,
+    namespace = 'common',
+    options?: UIActionOptions
+  ): Promise<string> {
+    return this.options.driver.value(
+      this.resolveSelector(key, namespace),
+      this.withDefaults(options)
+    );
   }
 
   public async attribute(
@@ -148,16 +196,37 @@ export class UICore {
     );
   }
 
-  public async waitVisible(key: string, namespace = 'common', options?: UIWaitOptions): Promise<void> {
-    await this.options.driver.waitForVisible(this.resolveSelector(key, namespace), this.withWaitDefaults(options));
+  public async waitVisible(
+    key: string,
+    namespace = 'common',
+    options?: UIWaitOptions
+  ): Promise<void> {
+    await this.options.driver.waitForVisible(
+      this.resolveSelector(key, namespace),
+      this.withWaitDefaults(options)
+    );
   }
 
-  public async waitHidden(key: string, namespace = 'common', options?: UIWaitOptions): Promise<void> {
-    await this.options.driver.waitForHidden(this.resolveSelector(key, namespace), this.withWaitDefaults(options));
+  public async waitHidden(
+    key: string,
+    namespace = 'common',
+    options?: UIWaitOptions
+  ): Promise<void> {
+    await this.options.driver.waitForHidden(
+      this.resolveSelector(key, namespace),
+      this.withWaitDefaults(options)
+    );
   }
 
-  public async waitExists(key: string, namespace = 'common', options?: UIWaitOptions): Promise<void> {
-    await this.options.driver.waitForExists(this.resolveSelector(key, namespace), this.withWaitDefaults(options));
+  public async waitExists(
+    key: string,
+    namespace = 'common',
+    options?: UIWaitOptions
+  ): Promise<void> {
+    await this.options.driver.waitForExists(
+      this.resolveSelector(key, namespace),
+      this.withWaitDefaults(options)
+    );
   }
 
   public async waitText(
@@ -206,7 +275,9 @@ export class UICore {
     const current = await this.options.driver.currentUrl();
     const passed = typeof expected === 'string' ? current === expected : expected.test(current);
     if (!passed) {
-      throw new TimeoutError(`URL assertion failed. current="${current}" expected="${String(expected)}"`);
+      throw new TimeoutError(
+        `URL assertion failed. current="${current}" expected="${String(expected)}"`
+      );
     }
   }
 
@@ -214,7 +285,9 @@ export class UICore {
     const title = await this.options.driver.evaluate(() => document.title);
     const passed = typeof expected === 'string' ? title === expected : expected.test(title);
     if (!passed) {
-      throw new TimeoutError(`Title assertion failed. current="${title}" expected="${String(expected)}"`);
+      throw new TimeoutError(
+        `Title assertion failed. current="${title}" expected="${String(expected)}"`
+      );
     }
   }
 
@@ -235,17 +308,14 @@ export class UICore {
     action: () => Promise<T>,
     retryPolicy: RetryPolicy = this.defaultRetryPolicy
   ): Promise<T> {
-    return retry(
-      async (attempt) => {
-        this.options.logger.debug('Executing UI retryable action', {
-          actionName,
-          attempt,
-          retryPolicy
-        });
-        return action();
-      },
-      retryPolicy
-    );
+    return retry(async (attempt) => {
+      this.options.logger.debug('Executing UI retryable action', {
+        actionName,
+        attempt,
+        retryPolicy
+      });
+      return action();
+    }, retryPolicy);
   }
 
   private withDefaults(options?: UIActionOptions): UIActionOptions {
@@ -269,4 +339,3 @@ export class UICore {
     };
   }
 }
-

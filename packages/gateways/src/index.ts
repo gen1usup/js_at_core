@@ -1,9 +1,13 @@
-﻿import type { ExecutionContext } from '@automation-platform/contracts';
+import type { ExecutionContext } from '@automation-platform/contracts';
 import type { PlatformLogger } from '@automation-platform/contracts';
 import { LifecycleEntitySupport } from '@automation-platform/data-support';
 import { QueueWaiter } from '@automation-platform/queue-core';
 import type { QueueClient } from '@automation-platform/contracts';
-import type { TemplateApiRepository, TemplateDbRepository, TemplateEntity } from '@automation-platform/repositories';
+import type {
+  TemplateApiRepository,
+  TemplateDbRepository,
+  TemplateEntity
+} from '@automation-platform/repositories';
 
 export interface CreateEntityCommand {
   name: string;
@@ -90,4 +94,3 @@ export class TemplateEntityGateway {
     return this.apiRepository.existsById(id);
   }
 }
-

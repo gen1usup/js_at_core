@@ -1,4 +1,4 @@
-﻿import { loadPlatformConfig, maskConfig } from '../packages/config/src/index';
+import { loadPlatformConfig, maskConfig } from '../packages/config/src/index';
 
 try {
   const config = loadPlatformConfig();

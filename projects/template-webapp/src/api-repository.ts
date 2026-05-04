@@ -1,4 +1,4 @@
-﻿import type { PlatformLogger } from '@automation-platform/contracts';
+import type { PlatformLogger } from '@automation-platform/contracts';
 import type { HttpClient } from '@automation-platform/contracts';
 import { TemplateApiRepository } from '@automation-platform/repositories';
 

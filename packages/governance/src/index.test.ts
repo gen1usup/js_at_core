@@ -1,9 +1,9 @@
-﻿import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { detectHardSleepUsage, validateName } from './index';
 
 describe('governance', () => {
   it('detects hard sleep policy violations', () => {
-    const issues = detectHardSleepUsage('await page.waitForTimeout(1000);', 'a.ts');
+    const issues = detectHardSleepUsage('await page.waitForTimeout(1000);', 'a.ts'); // governance-allow hard-sleep: policy fixture
     expect(issues.length).toBeGreaterThan(0);
   });
 

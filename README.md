@@ -1,119 +1,75 @@
-# Automation Platform Core (TypeScript Monorepo)
+# Automation Platform Core
 
-## 1. Что это за проект
-Это production-grade монорепозиторий с переиспользуемым ядром автоматизации для многих веб-проектов. Ядро разделено на независимые пакеты: UI (Playwright), API (Axios), DB, Queue, диагностика, orchestration, plugins, governance, CLI и template-проект.
+TypeScript automation platform core / starter kit for API, DB, async job and browser e2e scenarios.
 
-## 2. Для чего он нужен
-Проект решает задачу стандартизации автоматизации в компании:
-- единые контракты и архитектурные границы;
-- быстрый онбординг нового проекта через adapter/registry/config;
-- уменьшение copy-paste фреймворков между командами;
-- сильная типизация + runtime validation + observability.
+This repository is intended as a readable starter kit and demonstration project. It is not documented as production-ready; the current claim is limited to what is covered by local scripts, showcase tests and CI configuration in this repo.
 
-## 3. Ключевые архитектурные принципы
-- Composition over inheritance.
-- Capability-based design (функции включаются/отключаются флагами).
-- Typed contracts + runtime validation на границах.
-- Fail-fast config.
-- Детальная диагностика и артефакты.
-- Domain-neutral core + project-specific adapters.
+## Overview
 
-## 4. Почему выбраны Playwright и Axios
-- Playwright: современная browser automation платформа с auto-waiting, locator-first API, trace/video/screenshot артефактами и удобным e2e runner без собственного DSL.
-- Axios: зрелая экосистема interceptors/retries/timeouts и удобная композиция typed HTTP client abstraction.
+The project is an npm workspace monorepo with reusable automation modules under `packages/*`, showcase projects under `projects/*`, a local `demo-web-app`, and Playwright browser e2e tests under `tests/e2e`.
 
-## 5. Общая структура monorepo
-```text
-/packages
-  contracts
-  config
-  logger
-  utils
-  metadata
-  execution
-  diagnostics
-  selectors
-  ui-driver
-  ui-core
-  ui-components
-  ui-flows
-  api-core
-  db-core
-  queue-core
-  data-support
-  repositories
-  gateways
-  plugins
-  governance
-  cli
-/projects
-  template-webapp
-/scripts
-.github/workflows/ci.yml
-.gitlab-ci.yml
-```
+It demonstrates:
 
-## 6. Подробное описание каждого пакета
-- `contracts`: централизованные интерфейсы (adapter/auth/routes/selectors/execution/http/db/queue/plugins/cli).
-- `config`: zod-схемы, загрузка env, merge base+env+project, нормализация путей, fail-fast.
-- `logger`: pino-based structured logging, контекстные child logger, redaction.
-- `utils`: retry/wait, masking, id generation, typed error model.
-- `metadata`: declaration/validation helper для test metadata.
-- `execution`: execution context, step runner, cleanup/resource registries.
-- `diagnostics`: failure bundle, артефакты (screenshot/html/storage/network/console/API/DB/queue traces).
-- `selectors`: namespaced registry, builder, fallback/prioritization, Playwright conversion.
-- `ui-driver`: Playwright abstraction (navigation/actions/waits/storage/network/console/tabs/dialogs).
-- `ui-core`: устойчивые UI actions/assertions/waits с retry.
-- `ui-components`: domain-neutral компоненты (button/input/table/modal/...).
-- `ui-flows`: high-level flows (auth/crud/search/upload/permission).
-- `api-core`: typed Axios wrapper, retries/polling/pagination/error mapping.
-- `db-core`: PostgreSQL client abstraction, tx helpers, read-only/write guards.
-- `queue-core`: vendor-neutral queue contracts + in-memory adapter + waiters + DLQ abstraction.
-- `data-support`: builders/factories/presets/deterministic generator/snapshot diff/lifecycle support.
-- `repositories`: reusable API/DB repositories + scenario methods (`createMinimalValid`, `waitUntilStatus`, ...).
-- `gateways`: orchestration facade над repositories + queue + cleanup.
-- `plugins`: plugin manager + lifecycle hooks + working diagnostics plugin.
-- `governance`: quality rules (selectors/metadata/config/naming/no-hard-sleep scan).
-- `cli`: scaffolding/validation/inspection commands.
+- typed API automation with Axios and zod validation;
+- execution context, retries, polling and cleanup;
+- queue/DLQ style async scenarios;
+- diagnostics bundles and local artifacts;
+- browser UI e2e through Playwright;
+- a local demo app that does not require secrets or an external database.
 
-## 7. Как установить зависимости
+## Current status
+
+- Package manager: npm.
+- Browser e2e: Playwright Test.
+- Demo app: local Node.js HTTP server with JSON files and in-memory queue/worker.
+- CI: GitHub Actions and GitLab CI run install, lint, typecheck, tests, build, validation and e2e.
+- Known gap: several packages are covered by typecheck/showcase only and do not yet have package-local unit tests.
+
+## What is included
+
+- Core contracts, config, logging, metadata and utility packages.
+- API, DB, queue, repositories and gateway primitives.
+- UI contracts, selectors, Playwright driver, UI core/components/flows.
+- Diagnostics and a lightweight diagnostics report plugin.
+- Governance checks for metadata, selectors, config and hard sleep usage.
+- CLI helpers for small scaffolding and validation commands.
+- Showcase tests in `projects/core-showcase-tests` and `projects/template-webapp`.
+
+## Quick start
+
 ```bash
 npm install
-```
-
-## 8. Как собрать проект
-```bash
-npm run build
-```
-
-## 9. Как запускать lint/typecheck/tests
-```bash
 npm run lint
 npm run typecheck
-npm run test
-npm run validate
+npm test
+```
+
+Run the full local validation chain:
+
+```bash
 npm run ci
 ```
 
+## Run checks
+
+| Command             | What it does                        |
+| ------------------- | ----------------------------------- |
+| `npm run lint`      | ESLint over the repository          |
+| `npm run typecheck` | TypeScript no-emit typecheck        |
+| `npm test`          | Vitest unit/showcase tests          |
+| `npm run build`     | TypeScript project references build |
+| `npm run validate`  | Governance and config validation    |
+| `npm run test:e2e`  | Playwright browser e2e              |
+| `npm run ci`        | Local CI chain                      |
+
 ## Playwright e2e
 
-Browser e2e проверяет UI `demo-web-app`: открыть главную страницу, зарегистрировать пользователя, войти и создать задачу через Playwright locators. Если `BASE_URL`/`AP_BASE_URL` не задан, Playwright сам поднимает локальный `demo-web-app`.
+Playwright is configured in `playwright.config.ts`. The test directory is `tests/e2e`.
 
-### Setup
+If `BASE_URL` or `AP_BASE_URL` is not set, Playwright starts the local `demo-web-app` through `webServer` and uses `http://127.0.0.1:3010`.
+
 ```bash
-npm install
-npx playwright install chromium
-```
-
-### Environment
-```bash
-BASE_URL=http://localhost:3000
-```
-
-If `BASE_URL`/`AP_BASE_URL` is not set, Playwright starts the local `demo-web-app` and uses `http://127.0.0.1:3010`.
-
-### Run
-```bash
+npm run playwright:install
 npm run test:e2e
 npm run test:e2e:headed
 npm run test:e2e:debug
@@ -121,422 +77,91 @@ npm run test:e2e:ui
 npm run test:e2e:report
 ```
 
-### Artifacts
+Artifacts:
+
 - HTML report: `playwright-report/`
-- Traces, videos and screenshots: `test-results/`
+- traces/videos/screenshots: `test-results/`
 
-## 10. Как устроен конфиг
-Конфиг собирается в `packages/config` и всегда проходит runtime-валидацию через `zod`.
+## Demo web app
 
-Порядок приоритета источников (от меньшего к большему):
-1. `DEFAULT_CONFIG` из `packages/config/src/index.ts`
-2. Переменные окружения `AP_*` (через `dotenv`)
-3. `base` override
-4. `environment` override
-5. `project` override
+The demo app lives in `demo-web-app`. It is intentionally isolated from the core packages. It exists so API/integration/e2e showcases can run locally without external services.
 
-Что это дает:
-- единый контракт конфигурации для всех проектов;
-- fail-fast поведение при неверных параметрах;
-- возможность безопасно переопределять настройки под проект/стенд.
-
-Использование:
-```ts
-import { loadPlatformConfig } from '@automation-platform/config';
-
-const config = loadPlatformConfig({
-  envFilePath: '.env',
-  base: {},
-  environment: {},
-  project: {}
-});
-```
-
-### 10.1 Где хранить данные проекта (секреты, пользователи, токены)
-- Секреты БД/API/пользователей хранить только в env/secret manager (локально `.env`, в CI/CD — защищенные переменные).
-- В репозитории хранить только пример `.env.example` без реальных значений.
-- Не хранить пароли/токены в `config.ts`, `adapter.ts`, `repository.ts`.
-- Для пользовательских аккаунтов (логин/пароль, cookie, token) читать значения в `AuthProvider` из `process.env`.
-
-### 10.2 Пример env-конфигурации проекта
-```env
-AP_PROJECT_NAME=my-project
-AP_ENV=staging
-AP_BASE_URL=https://my-app.company
-
-AP_API_ENABLED=true
-AP_API_TIMEOUT_MS=10000
-
-AP_DB_ENABLED=true
-AP_DB_URL=postgres://user:pass@db-host:5432/app_db
-AP_DB_READ_ONLY=false
-AP_DB_MAX_CONNECTIONS=10
-AP_DB_TIMEOUT_MS=10000
-AP_DB_WRITE_ENVS=staging,prod-like
-
-AP_QUEUE_ENABLED=true
-AP_QUEUE_PROVIDER=custom
-AP_QUEUE_ENDPOINT=amqp://...
-
-AP_LOG_LEVEL=info
-AP_ARTIFACTS_DIR=./artifacts
-
-PROJECT_ADMIN_USER=admin@example.com
-PROJECT_ADMIN_PASSWORD=...
-PROJECT_AUTH_TOKEN=...
-```
-
-### 10.3 Где держать project-specific override
-- Файл `projects/<project>/src/config.ts` — только не-секретные проектные defaults/feature flags/capabilities.
-- Секреты туда не класть.
-
-## 11. Как подключить новый проект
-1. Создать проект в `projects/<name>`.
-2. Реализовать `ProjectAdapter`.
-3. Подключить routes/selectors/auth-provider.
-4. Создать project-level repositories/gateways/flows.
-5. Добавить проект в `tsconfig.build.json` references.
-
-## 12. Как написать project adapter
-Файл должен экспортировать объект `ProjectAdapter`:
-- `name`, `version`;
-- `capabilities`, `featureFlags`;
-- `routes`, `selectors`;
-- `authProvider`;
-- optional `initialize/dispose`.
-
-См. `projects/template-webapp/src/adapter.ts`.
-
-## 13. Как устроены routes
-Routes типизированы как `RouteDefinition<TParams>` и собраны в `RouteRegistry`. В template-проекте есть `buildRoute` helper и набор маршрутов `home/login/entities/entityDetails`.
-
-## 14. Как устроены selectors
-Selectors — namespaced registry с fallback candidates:
-- strategies: `testId`, `css`, `xpath`, `text`;
-- priority/fallback + diagnostic-friendly resolution;
-- builders через `SelectorBuilder`.
-
-## 15. Как устроен UI layer
-- `ui-driver`: низкоуровневый безопасный Playwright facade.
-- `ui-core`: retryable actions + wait/assert wrappers.
-- `ui-components`: reusable component objects.
-- `ui-flows`: бизнес-сценарии из компонентов/действий.
-
-## 16. Как устроены компоненты
-Реализованы: `Button`, `Input`, `Textarea`, `Checkbox`, `Radio`, `Select`, `Table`, `Grid`, `Modal`, `Drawer`, `Toast`, `Tabs`, `Pagination`, `Header`, `Sidebar`, `FileUploader`, `FilterPanel`, `DatePicker`, `Loader`.
-
-## 17. Как устроены flows
-`ui-flows` содержит:
-- `AuthFlow` (login/logout),
-- `EntityCrudFlow` (create/edit/delete),
-- `SearchFilterSortFlow`,
-- `FileTransferFlow`,
-- `PermissionVisibilityFlow`.
-
-## 18. Как устроен API layer
-`AxiosHttpClient` предоставляет:
-- normalised request API,
-- auth injection,
-- retries/backoff,
-- timeout handling,
-- response validation (zod),
-- polling/pagination/eventual consistency.
-
-### 18.1 Как подключить свой API
-```ts
-import { AxiosHttpClient } from '@automation-platform/api-core';
-
-const apiClient = new AxiosHttpClient({
-  baseUrl: config.api.baseUrl,
-  timeoutMs: config.api.timeoutMs,
-  retry: config.api.retry,
-  logger,
-  authTokenProvider: async () => process.env.PROJECT_AUTH_TOKEN
-});
-```
-
-Дальше `apiClient` передается в ваши repositories (`TemplateWebApiRepository` или собственные).
-
-## 19. Как устроен DB layer
-`PostgresDatabaseClient`:
-- `queryOne/queryMany/scalar/exists/execute/transaction`;
-- parameterized query only;
-- read-only mode + write guard by env;
-- trace logging + error mapping.
-
-### 19.1 Как подключить свою БД
-Для PostgreSQL:
-```ts
-import { PostgresDatabaseClient } from '@automation-platform/db-core';
-
-const dbClient = new PostgresDatabaseClient(
-  {
-    connectionString: config.db.connectionString,
-    maxConnections: config.db.maxConnections,
-    statementTimeoutMs: config.db.statementTimeoutMs,
-    readOnly: config.db.readOnly,
-    environment: config.environment,
-    writeAllowedEnvironments: config.db.writeAllowedEnvironments
-  },
-  logger
-);
-```
-
-Если нужна другая БД, реализуйте свой адаптер, совместимый с контрактом `DatabaseClient` из `contracts`, и подключайте его в composition root аналогично.
-
-## 20. Как устроен queue layer
-`queue-core`:
-- `QueueClient` contract;
-- `InMemoryQueueClient` adapter;
-- `QueueWaiter` (`waitForMessage`, `waitForCorrelation`, `waitForBackgroundJob`);
-- `InMemoryDeadLetterQueueAdapter`.
-
-## 21. Как устроены repositories
-`repositories` содержит базовые API/DB абстракции и template-реализации:
-- `TemplateApiRepository`;
-- `TemplateDbRepository`;
-- scenario helpers: `createMinimalValid`, `createDraftLike`, `deleteIfExists`, `existsById`, `waitUntilStatus`.
-
-## 22. Как устроены gateways
-`TemplateEntityGateway` orchestrates:
-- API update,
-- queue wait/ack,
-- cleanup registration,
-- DB/API access через высокоуровневые методы.
-
-## 23. Как работает cleanup
-Execution context содержит `CleanupRegistry`.
-Ресурсы регистрируются через `LifecycleEntitySupport`, cleanup задачи выполняются детерминированно в обратном порядке.
-
-## 24. Как работает diagnostics
-`createFailureBundle` собирает:
-- screenshot,
-- HTML,
-- URL,
-- cookies/localStorage/sessionStorage,
-- api/db/queue traces,
-- console/network,
-- manifest.
-
-Все складывается в `artifacts/diagnostics/<executionId>`.
-
-## 25. Как пользоваться CLI
-CLI пакет: `@automation-platform/cli`.
-Команды:
 ```bash
-node packages/cli/dist/index.js create adapter --name demo --directory projects/demo/src
-node packages/cli/dist/index.js create selector-module --name auth --directory projects/demo/src
-node packages/cli/dist/index.js create component --name profile --directory projects/demo/src
-node packages/cli/dist/index.js create flow --name login --directory projects/demo/src
-node packages/cli/dist/index.js create repository --name orders --directory projects/demo/src
-node packages/cli/dist/index.js create gateway --name orders --directory projects/demo/src
-node packages/cli/dist/index.js create template-test --name smoke --directory projects/demo/tests
-node packages/cli/dist/index.js validate-config
-node packages/cli/dist/index.js validate-governance --root .
-node packages/cli/dist/index.js inspect-env
+npx tsx demo-web-app/src/server.ts
+npx tsx demo-web-app/src/demo-scenario.ts
 ```
 
-## 26. Как расширять framework
-- Добавлять новые capability flags.
-- Реализовывать новые adapters поверх contracts.
-- Расширять plugins/governance/runners без изменения доменного кода тестов.
+See `demo-web-app/README.md` for endpoints, data files, reset instructions and which tests use the app.
 
-## 27. Как писать новые компоненты
-1. Наследоваться от `BaseComponent` в `ui-components`.
-2. Использовать `UICore` вместо raw driver.
-3. Добавить action/state/assert методы.
-4. Зарегистрировать фабричный метод в `ComponentFactory`.
+## Showcase scenarios
 
-## 28. Как писать новые repositories
-1. Использовать `BaseApiRepository`/`BaseDbRepository`.
-2. Добавлять scenario-oriented методы, а не только CRUD.
-3. Делать idempotent delete/wait helpers.
+| Scenario                | Location                                                                                   | Demonstrates                                                                           |
+| ----------------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------- |
+| Simple API client       | `projects/core-showcase-tests/tests/api-client-showcase.test.ts`                           | AxiosHttpClient, zod response validation, demo app health/auth API                     |
+| API + async job/polling | `projects/core-showcase-tests/tests/integration-real-demo.test.ts`                         | register/login/create task, polling, failed task/DLQ, diagnostics plugin               |
+| Browser e2e             | `tests/e2e/smoke.spec.ts`                                                                  | Playwright locator-first browser flow against demo app                                 |
+| Diagnostics/artifacts   | `projects/core-showcase-tests/tests/core-capabilities-showcase.test.ts` and real demo test | failure bundle and diagnostics report JSON                                             |
+| Mock core showcase      | `projects/core-showcase-tests/tests/core-capabilities-showcase.test.ts`                    | contracts, fake UI driver, repositories, queue, cleanup                                |
+| Template project        | `projects/template-webapp/tests/template.test.ts`                                          | project adapter, selectors, repositories, gateway and queue-aware flow without browser |
 
-## 29. Как писать новые gateways
-1. Инжектить repositories + queue + execution context.
-2. Оркестрировать async verification.
-3. Регистрировать cleanup ресурсы.
+## Project structure
 
-## 30. Как добавлять плагины
-1. Реализовать `PlatformPlugin`.
-2. Подписаться на lifecycle hook (`beforeStep`, `onFailure`, `onDiagnostics`, ...).
-3. Зарегистрировать через `PluginManager.register`.
-
-## 31. Лучшие практики
-- Использовать `waitFor/retry`, не `sleep`.
-- Работать через gateways/flows, а не через raw infra в тестах.
-- Хранить selectors/routes централизованно.
-- Включать diagnostics для flaky/critical сценариев.
-
-## 32. Антипаттерны
-- Хардкод URL/selectors в тестах.
-- Прямой Playwright/Axios/SQL вызов в бизнес-сценарии без слоя abstractions.
-- Неидемпотентный cleanup.
-- Скрытые side effects без логирования.
-
-## 33. Пример жизненного цикла теста/сценария
-1. Load config.
-2. Create execution context.
-3. Initialize adapter/plugins.
-4. Run steps via `StepRunner`.
-5. Use gateway/flows.
-6. On failure: collect diagnostics bundle.
-7. Run cleanup registry.
-8. Finalize and persist artifacts.
-
-## 34. Пример подключения template-webapp
-См. `projects/template-webapp`:
-- adapter: `src/adapter.ts`
-- routes: `src/routes.ts`
-- selectors: `src/selectors.ts`
-- auth provider: `src/auth-provider.ts`
-- repositories/gateway/async scenario: `src/*.ts`
-- tests: `tests/template.test.ts`
-
-### 34.1 Как конфигурировать классы проекта из данных конфигурации
-Рекомендуется делать единый `bootstrap` (composition root), где из `config + env` собираются все зависимости:
-
-```ts
-import { loadPlatformConfig } from '@automation-platform/config';
-import { createLogger } from '@automation-platform/logger';
-import { createExecutionContext } from '@automation-platform/execution';
-import { AxiosHttpClient } from '@automation-platform/api-core';
-import { PostgresDatabaseClient } from '@automation-platform/db-core';
-import { InMemoryQueueClient } from '@automation-platform/queue-core';
-import { TemplateWebApiRepository } from './api-repository';
-import { TemplateWebDbRepository } from './db-repository';
-import { TemplateWebGateway } from './gateway';
-
-const config = loadPlatformConfig();
-const logger = createLogger({
-  level: config.logging.level,
-  serviceName: config.projectName,
-  environment: config.environment
-});
-
-const context = createExecutionContext({
-  projectName: config.projectName,
-  environment: config.environment,
-  capabilityMap: config.capabilities,
-  featureFlags: config.featureFlags,
-  logger
-});
-
-const apiClient = new AxiosHttpClient({
-  baseUrl: config.api.baseUrl,
-  timeoutMs: config.api.timeoutMs,
-  retry: config.api.retry,
-  logger,
-  authTokenProvider: async () => process.env.PROJECT_AUTH_TOKEN
-});
-
-const dbClient = new PostgresDatabaseClient(
-  {
-    connectionString: config.db.connectionString,
-    maxConnections: config.db.maxConnections,
-    statementTimeoutMs: config.db.statementTimeoutMs,
-    readOnly: config.db.readOnly,
-    environment: config.environment,
-    writeAllowedEnvironments: config.db.writeAllowedEnvironments
-  },
-  logger
-);
-
-const queueClient = new InMemoryQueueClient(logger);
-
-const apiRepo = new TemplateWebApiRepository(apiClient, logger);
-const dbRepo = new TemplateWebDbRepository(dbClient, logger);
-
-const gateway = new TemplateWebGateway(apiRepo, dbRepo, queueClient, context, logger);
+```text
+packages/              reusable platform modules
+projects/              showcase/template projects
+demo-web-app/          local app used by API and e2e showcases
+tests/e2e/             Playwright browser tests
+scripts/               validation helpers
+.github/workflows/     GitHub Actions CI
+.gitlab-ci.yml         GitLab CI
 ```
 
-После этого тесты и сценарии должны использовать `gateway/flows`, а не собирать инфраструктуру вручную в каждом тесте.
+## Module documentation
 
-## 35. Переменные окружения
-Основные `AP_*`:
-- `AP_PROJECT_NAME`
-- `AP_ENV`
-- `AP_BASE_URL`
-- `AP_UI_ENABLED`
-- `AP_BROWSER_HEADLESS`
-- `AP_API_ENABLED`
-- `AP_DB_ENABLED`
-- `AP_DB_URL`
-- `AP_DB_READ_ONLY`
-- `AP_DB_MAX_CONNECTIONS`
-- `AP_DB_TIMEOUT_MS`
-- `AP_DB_WRITE_ENVS`
-- `AP_QUEUE_ENABLED`
-- `AP_QUEUE_PROVIDER`
-- `AP_QUEUE_ENDPOINT`
-- `AP_QUEUE_TIMEOUT_MS`
-- `AP_QUEUE_NAME`
-- `AP_ARTIFACTS_DIR`
-- `AP_LOG_LEVEL`
-- `AP_FEATURE_FLAGS`
+- [@automation-platform/api-core](packages/api-core/README.md)
+- [@automation-platform/cli](packages/cli/README.md)
+- [@automation-platform/config](packages/config/README.md)
+- [@automation-platform/contracts](packages/contracts/README.md)
+- [@automation-platform/data-support](packages/data-support/README.md)
+- [@automation-platform/db-core](packages/db-core/README.md)
+- [@automation-platform/diagnostics](packages/diagnostics/README.md)
+- [@automation-platform/execution](packages/execution/README.md)
+- [@automation-platform/gateways](packages/gateways/README.md)
+- [@automation-platform/governance](packages/governance/README.md)
+- [@automation-platform/logger](packages/logger/README.md)
+- [@automation-platform/metadata](packages/metadata/README.md)
+- [@automation-platform/plugins](packages/plugins/README.md)
+- [@automation-platform/queue-core](packages/queue-core/README.md)
+- [@automation-platform/repositories](packages/repositories/README.md)
+- [@automation-platform/selectors](packages/selectors/README.md)
+- [@automation-platform/ui-components](packages/ui-components/README.md)
+- [@automation-platform/ui-core](packages/ui-core/README.md)
+- [@automation-platform/ui-driver](packages/ui-driver/README.md)
+- [@automation-platform/ui-flows](packages/ui-flows/README.md)
+- [@automation-platform/utils](packages/utils/README.md)
 
-Проектные (кастомные) переменные лучше именовать отдельно, например:
-- `PROJECT_AUTH_TOKEN`
-- `PROJECT_ADMIN_USER`
-- `PROJECT_ADMIN_PASSWORD`
-- `PROJECT_TEST_USER_1`
+## CI
 
-См. `.env.example`.
+GitHub Actions and GitLab CI use Node.js 22, npm, Playwright Chromium installation and repository scripts from `package.json`.
 
-## 36. Ограничения текущей реализации
-- Queue adapter по умолчанию in-memory (для реального брокера нужен vendor adapter).
-- DB интеграционные тесты с PostgreSQL не включены в unit run (нужен внешний инстанс).
-- UI e2e запускаются в `npm run ci`; по умолчанию они используют локальный `demo-web-app`, внешний стенд задаётся через `BASE_URL` или `AP_BASE_URL`.
+CI uploads local artifacts when available:
 
-## 37. Идеи дальнейшего развития
-- Реальные adapters для Kafka/Rabbit/SQS.
-- Расширение plugin ecosystem (a11y/visual/AI) до production-ready реализаций.
-- Affected-package CI mode.
-- Distributed execution и sharding.
-- Интеграция с test management/reporting системами.
+- `artifacts/`
+- `coverage/`
+- `playwright-report/`
+- `test-results/`
 
----
+## Limitations
 
-## Быстрый старт
-```bash
-npm install
-npm run ci
-```
+- This is a starter kit and showcase, not a proven production framework.
+- `db-core` has a PostgreSQL client but no local PostgreSQL integration service in CI.
+- Several UI packages are covered by typecheck/showcase only, not dedicated unit tests.
+- `plugins` currently implements diagnostics JSON output; other plugin contracts are placeholders for future implementation.
+- The demo app stores data in local JSON files and is not intended as an application template.
 
-## CI/CD
-- Готовые шаблоны: `.github/workflows/ci.yml`, `.gitlab-ci.yml`.
-- Пайплайн-гейты: lint, typecheck, test, build, validate, Playwright e2e.
-- Артефакты: `artifacts/**`, `coverage/**`, `playwright-report/**`, `test-results/**`, `packages/*/dist`, `projects/*/dist`.
-- Команда для пайплайна: `npm run ci`.
+## Next steps
 
-## Секреты и безопасность
-- Секреты не хранятся в репозитории.
-- Маскирование чувствительных полей в `utils.maskSensitive` и logger redaction.
-- Используйте секреты через CI variables / env.
-
-## Состояние валидации
-На текущей версии репозитория успешно проходят:
-- `npm run lint`
-- `npm run typecheck`
-- `npm run test`
-- `npm run build`
-- `npm run validate`
-- `npm run test:e2e`
-- `npm run ci`
-
-
-## Дополнение: Standalone Demo Web App
-В репозитории добавлен полностью изолированный демонстрационный проект: `demo-web-app/`. Он используется как дефолтный target для Playwright browser e2e и real integration showcase.
-
-- Он не импортирует `@automation-platform/*` пакеты.
-- Не участвует в сборке core-пакетов.
-- Может быть удалён целиком без влияния на работоспособность core.
-
-Отдельная инструкция запуска: `demo-web-app/README.md`.
-
-## Showcase Tests
-- Template scenario without browser: `projects/template-webapp/tests/template.test.ts` demonstrates queue-aware project composition.
-- Core mock showcase: `projects/core-showcase-tests/tests/core-capabilities-showcase.test.ts` demonstrates API/DB/queue/diagnostics/plugins plus the `UIDriver` contract with a fake driver.
-- Real demo integration without browser automation: `projects/core-showcase-tests/tests/integration-real-demo.test.ts` starts `demo-web-app` and verifies API/auth/queue/DB/diagnostics.
-- Browser UI e2e: `tests/e2e/smoke.spec.ts` uses Playwright against `demo-web-app` or `BASE_URL`.
-- If `demo-web-app` is removed, the real integration test is auto-skipped; Playwright e2e needs `BASE_URL`/`AP_BASE_URL` to target another app.
+- Add package-local tests for `ui-core`, `ui-components`, `ui-flows`, `ui-driver`, `cli` and `plugins`.
+- Add optional PostgreSQL integration tests for `db-core` using a controlled local service.
+- Add a short architecture diagram once the API boundaries stabilize.
+- Decide whether CLI scaffolding should stay minimal or become a separately versioned tool.

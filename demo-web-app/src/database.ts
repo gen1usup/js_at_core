@@ -1,7 +1,14 @@
 import { randomUUID } from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { AppDatabaseFile, AuthDatabaseFile, SessionRecord, TaskRecord, TaskStatus, UserRecord } from './types';
+import type {
+  AppDatabaseFile,
+  AuthDatabaseFile,
+  SessionRecord,
+  TaskRecord,
+  TaskStatus,
+  UserRecord
+} from './types';
 import { assertObject, ensureStringArray, ValidationError } from './validation';
 
 const AUTH_DB_FILE = 'auth-db.json';
@@ -254,7 +261,11 @@ export class JsonDatabases {
     return found ? cloneUser(found) : null;
   }
 
-  public async createSession(userId: string, tokenHash: string, expiresAtIso: string): Promise<SessionRecord> {
+  public async createSession(
+    userId: string,
+    tokenHash: string,
+    expiresAtIso: string
+  ): Promise<SessionRecord> {
     const session: SessionRecord = {
       tokenHash,
       userId,
@@ -283,7 +294,9 @@ export class JsonDatabases {
   }
 
   public async revokeSession(tokenHash: string): Promise<void> {
-    this.authDb.sessions = this.authDb.sessions.filter((session) => session.tokenHash !== tokenHash);
+    this.authDb.sessions = this.authDb.sessions.filter(
+      (session) => session.tokenHash !== tokenHash
+    );
     await this.persistAuth();
   }
 
@@ -322,7 +335,11 @@ export class JsonDatabases {
       .map((task) => cloneTask(task));
   }
 
-  public async updateTaskStatus(taskId: string, status: TaskStatus, lastError?: string): Promise<TaskRecord | null> {
+  public async updateTaskStatus(
+    taskId: string,
+    status: TaskStatus,
+    lastError?: string
+  ): Promise<TaskRecord | null> {
     const task = this.appDb.tasks.find((item) => item.id === taskId);
     if (!task) {
       return null;
