@@ -2,28 +2,31 @@
 
 ## Purpose
 
-Runtime config loading, merging, masking and validation.
+Loads and validates platform configuration from defaults, environment variables, and project overrides.
 
 ## Scope
 
-- Provides the public API listed below.
-- Stays focused on its package responsibility inside the automation starter kit.
-- Is designed to be composed with other packages instead of owning complete scenarios alone.
+- `loadPlatformConfig` merges inputs.
+- `validateConfig` checks schema validity.
+- `maskConfig` prepares safe logging output.
 
 ## Non-goals
 
-- Does not replace a test runner.
-- Does not introduce project-specific business logic.
-- Does not claim production readiness beyond the tests and CI in this repository.
+- Remote config.
+- Secret management.
+- Starting services.
 
 ## Public API
 
-- loadPlatformConfig
-- validateConfig
-- maskConfig
-- getCapabilityMap
-- getFeatureFlags
-- defaultConfig
+- `PlatformConfig`
+- `PlatformConfigInput`
+- `ConfigLoaderOptions`
+- `validateConfig`
+- `loadPlatformConfig`
+- `getCapabilityMap`
+- `getFeatureFlags`
+- `maskConfig`
+- `defaultConfig`
 
 ## Basic usage
 
@@ -31,38 +34,32 @@ Runtime config loading, merging, masking and validation.
 import { loadPlatformConfig } from '@automation-platform/config';
 
 const config = loadPlatformConfig({
-  env: { AP_PROJECT_NAME: 'demo', AP_BASE_URL: 'http://127.0.0.1:3010' }
+  env: { AP_BASE_URL: 'http://127.0.0.1:3010', AP_API_ENABLED: 'true' }
 });
+
+console.log(config.api.baseUrl);
 ```
 
 ## Integration
 
-- Used through workspace imports by tests, examples or neighboring packages.
-- Prefer depending on shared contracts when crossing package boundaries.
-- See the root README showcase matrix for concrete usage paths.
+Used by showcase tests to configure API, queue, diagnostics, feature flags, and capabilities.
 
 ## Configuration
 
-- Most options are passed explicitly by constructor/function input.
-- Environment-level settings are handled by @automation-platform/config when needed.
-- This package does not require secrets directly unless the caller passes them into its own config.
+Reads `AP_*` values and optional project overrides.
 
 ## Error handling
 
-- Errors are surfaced to callers instead of being swallowed.
-- Shared platform error classes from @automation-platform/utils are used where this package owns the failure mode.
-- Callers should add scenario-level diagnostics/cleanup through execution and diagnostics packages.
+Invalid input fails schema validation before runtime use.
 
 ## Testing
 
-packages/config/src/index.test.ts and npm run validate
+Covered by `packages/config/src/index.test.ts` and `npm run config:validate`.
 
 ## Limitations
 
-Local env/file based config only; not a secret manager.
+Config is local and static for a process.
 
 ## Extension points
 
-- Extend by adding narrow functions/classes with tests.
-- Keep app-specific behavior in projects/\* unless it is truly reusable.
-- Avoid broad abstractions until at least two real scenarios need them.
+Add fields with defaults, tests, and docs in the same change.

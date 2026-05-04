@@ -1,127 +1,79 @@
 # Demo Web App
 
-Local demonstration app used by API, async job and Playwright browser e2e showcases.
-
-It is intentionally isolated from `@automation-platform/*` packages. The app can be removed without changing the core packages; it exists to make the starter kit runnable without external services.
-
 ## Purpose
 
-The app gives tests a realistic but small target with authentication, an HTTP API, JSON file storage, an in-memory queue and a background worker.
+`demo-web-app` is a local HTTP application used to demonstrate the automation core without external services. It supports auth, task creation, JSON file persistence, an in-memory queue worker, and a failed-task DLQ view.
 
-## What it demonstrates
+## How it is used by tests
 
-- user registration and login;
-- Bearer token authorization;
-- task creation through API and browser UI;
-- async task processing through a queue worker;
-- failed task path through `[fail]` title marker and DLQ-style endpoint;
-- local state reset through data directory cleanup.
+- Vitest API showcase tests start it on a random port with a temporary data directory.
+- Playwright e2e starts it through `playwright.config.ts` when `BASE_URL` and `AP_BASE_URL` are not provided.
+- Playwright e2e passes `DEMO_DATA_DIR=artifacts/demo-e2e-data`, so browser runs do not write to the default manual data directory.
+- Tests create unique users and tasks, so a reset endpoint is not required for current scenarios.
 
-## Start locally
+## Local start
 
 ```bash
-npm install
-npx tsc -p demo-web-app/tsconfig.json --noEmit
 npx tsx demo-web-app/src/server.ts
 ```
 
-Default URL: `http://127.0.0.1:3010`.
+The server logs the selected `baseUrl`. By default it uses `127.0.0.1:3010`.
 
-## API smoke scenario without browser
+## Environment
 
-This scenario starts the app on a random port, performs register/login/create task/wait completed, then stops the app.
+- `DEMO_HOST`: host, default `127.0.0.1`.
+- `DEMO_PORT`: port, default `3010`.
+- `DEMO_DATA_DIR`: JSON data directory, default `demo-web-app/data`.
+- `DEMO_QUEUE_NAME`: queue name, default `demo.task.jobs`.
+- `DEMO_TOKEN_TTL_MS`: token TTL.
+- `DEMO_WORKER_POLL_MS`: worker polling interval.
 
-```bash
-npx tsx demo-web-app/src/demo-scenario.ts
-```
+## API endpoints
 
-## Playwright browser e2e from repository root
+| Method | Path                 | Description               | Auth            |
+| ------ | -------------------- | ------------------------- | --------------- |
+| `GET`  | `/`                  | HTML demo UI              | No              |
+| `GET`  | `/health`            | Health and queue counts   | No              |
+| `POST` | `/api/auth/register` | Create user               | No              |
+| `POST` | `/api/auth/login`    | Create bearer token       | No              |
+| `POST` | `/api/auth/logout`   | Revoke current token      | Yes             |
+| `GET`  | `/api/auth/me`       | Resolve current user      | Yes             |
+| `POST` | `/api/tasks`         | Create queued task        | Yes             |
+| `GET`  | `/api/tasks`         | List current user tasks   | Yes             |
+| `GET`  | `/api/tasks/:id`     | Read one task             | Yes             |
+| `GET`  | `/api/queue/metrics` | Admin queue metrics       | Yes, admin only |
+| `GET`  | `/api/queue/dlq`     | Current user failed tasks | Yes             |
 
-The browser test opens the UI, registers a unique user, logs in, creates a task and verifies the JSON output through Playwright locators.
+## Data storage
 
-```bash
-npm run test:e2e
-npm run test:e2e:headed
-npm run test:e2e:debug
-```
+The app stores JSON files in the configured data directory:
 
-If `BASE_URL` or `AP_BASE_URL` is not set, `playwright.config.ts` starts this app through Playwright `webServer` and uses `http://127.0.0.1:3010`.
+- `auth-db.json`: users and sessions.
+- `app-db.json`: tasks.
 
-To run against an already started app:
+Vitest tests use temporary directories under `artifacts/` and remove them during cleanup. Manual runs use `demo-web-app/data`, which is ignored by git.
 
-```bash
-BASE_URL=http://127.0.0.1:3010 npm run test:e2e
-```
+## Queue and worker
 
-On PowerShell:
+- New tasks are stored as `queued` and published to the in-memory queue.
+- The worker marks normal tasks as `processing` and then `completed`.
+- A task title containing `[fail]` forces worker failure; the task becomes `failed` and is represented through `/api/queue/dlq`.
 
-```powershell
-$env:BASE_URL='http://127.0.0.1:3010'
-npm run test:e2e
-```
+## Reset / cleanup
 
-## Configuration
+There is no reset endpoint because current tests avoid shared state with unique users and temporary data directories. For manual cleanup, stop the server and remove `demo-web-app/data` or the custom `DEMO_DATA_DIR`.
 
-| Env var               | Default               | Meaning                                          |
-| --------------------- | --------------------- | ------------------------------------------------ |
-| `DEMO_HOST`           | `127.0.0.1`           | Host to bind                                     |
-| `DEMO_PORT`           | `3010`                | Port to bind; tests can pass `0` for random port |
-| `DEMO_DATA_DIR`       | `./demo-web-app/data` | JSON file data directory                         |
-| `DEMO_QUEUE_NAME`     | `demo.task.jobs`      | Queue name used by worker                        |
-| `DEMO_TOKEN_TTL_MS`   | `3600000`             | Login token TTL                                  |
-| `DEMO_WORKER_POLL_MS` | `250`                 | Worker polling interval                          |
+## Related tests
 
-## Endpoints
-
-| Method/path               | Auth           | Purpose                        |
-| ------------------------- | -------------- | ------------------------------ |
-| `GET /`                   | no             | Browser demo UI                |
-| `GET /health`             | no             | Health and queue size snapshot |
-| `POST /api/auth/register` | no             | Create user                    |
-| `POST /api/auth/login`    | no             | Create token                   |
-| `POST /api/auth/logout`   | token optional | Invalidate token when provided |
-| `GET /api/auth/me`        | yes            | Current user                   |
-| `POST /api/tasks`         | yes            | Create queued task             |
-| `GET /api/tasks`          | yes            | List current user tasks        |
-| `GET /api/tasks/:id`      | yes            | Get one task                   |
-| `GET /api/queue/metrics`  | admin only     | Queue sizes                    |
-| `GET /api/queue/dlq`      | yes            | Failed tasks for current user  |
-
-## Data and reset
-
-Default data files:
-
-- `demo-web-app/data/auth-db.json`
-- `demo-web-app/data/app-db.json`
-
-To reset local state, stop the app and delete `demo-web-app/data/`, or set `DEMO_DATA_DIR` to a temporary directory for a single run.
-
-Automated tests usually pass their own temporary directory under `artifacts/` and remove it during cleanup.
-
-## Queue and failed path
-
-Creating a task publishes a message to the in-memory queue. The worker marks normal tasks as `completed`.
-
-To force a failed task, include `[fail]` in the task title:
-
-```json
-{
-  "title": "[fail] force worker error"
-}
-```
-
-The worker marks that task as `failed`; `GET /api/queue/dlq` exposes failed tasks for the current user.
-
-## Tests that use this app
-
-- `projects/core-showcase-tests/tests/api-client-showcase.test.ts` for a simple API client scenario.
-- `projects/core-showcase-tests/tests/integration-real-demo.test.ts` for API + async job/polling + diagnostics.
-- `tests/e2e/smoke.spec.ts` for Playwright browser e2e.
-- `demo-web-app/src/demo-scenario.ts` for a standalone API smoke run.
+- `projects/core-showcase-tests/tests/api-client-showcase.test.ts`.
+- `projects/core-showcase-tests/tests/api-async-job.test.ts`.
+- `projects/core-showcase-tests/tests/api-dlq.test.ts`.
+- `projects/core-showcase-tests/tests/integration-real-demo.test.ts`.
+- `tests/e2e/smoke.spec.ts`: browser flow through registration, login, task creation, and queued state.
+- `tests/e2e/async-flow.spec.ts`: browser flow that refreshes the task list until the worker-completed state is visible.
 
 ## Limitations
 
-- The app is a test target, not a production web app template.
-- Data storage is JSON files, not a database server.
-- The queue is in-memory and exists only for the process lifetime.
-- Authentication is intentionally simple for demo purposes.
+- The queue is in memory and exists only while the process runs.
+- JSON persistence is useful for local demos, not concurrent multi-process storage.
+- There is no external identity provider, role management UI, or database server.

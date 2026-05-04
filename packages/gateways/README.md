@@ -2,62 +2,60 @@
 
 ## Purpose
 
-Scenario orchestration over repositories, queue and cleanup.
+Shows a gateway layer for command-style interactions over repositories and queues.
 
 ## Scope
 
-- Provides the public API listed below.
-- Stays focused on its package responsibility inside the automation starter kit.
-- Is designed to be composed with other packages instead of owning complete scenarios alone.
+- `TemplateEntityGateway` creates and updates entities.
+- `CreateEntityCommand` and `UpdateStatusCommand` define example commands.
 
 ## Non-goals
 
-- Does not replace a test runner.
-- Does not introduce project-specific business logic.
-- Does not claim production readiness beyond the tests and CI in this repository.
+- Domain-specific services.
+- Persistence primitives.
+- Cross-service orchestration.
 
 ## Public API
 
-- CreateEntityCommand
-- UpdateStatusCommand
-- TemplateEntityGateway
+- `CreateEntityCommand`
+- `UpdateStatusCommand`
+- `TemplateEntityGateway`
 
 ## Basic usage
 
 ```ts
-import { CreateEntityCommand } from '@automation-platform/gateways';
+import { TemplateEntityGateway } from '@automation-platform/gateways';
 
-const entity = await gateway.create({ name: 'demo', cleanupViaApi: true });
+const gateway = new TemplateEntityGateway(
+  apiRepository,
+  dbRepository,
+  queueClient,
+  context,
+  logger
+);
+const entity = await gateway.create({ name: 'demo' });
 ```
 
 ## Integration
 
-- Used through workspace imports by tests, examples or neighboring packages.
-- Prefer depending on shared contracts when crossing package boundaries.
-- See the root README showcase matrix for concrete usage paths.
+Used by template and core showcase tests with repository and queue contracts.
 
 ## Configuration
 
-- Most options are passed explicitly by constructor/function input.
-- Environment-level settings are handled by @automation-platform/config when needed.
-- This package does not require secrets directly unless the caller passes them into its own config.
+Construct with repository, queue, logger, and expected queue naming options.
 
 ## Error handling
 
-- Errors are surfaced to callers instead of being swallowed.
-- Shared platform error classes from @automation-platform/utils are used where this package owns the failure mode.
-- Callers should add scenario-level diagnostics/cleanup through execution and diagnostics packages.
+Repository or queue failures propagate from the underlying contract implementation.
 
 ## Testing
 
-packages/gateways/src/index.test.ts and showcase tests
+Covered by gateway unit tests and showcase tests.
 
 ## Limitations
 
-TemplateEntityGateway is a demo implementation, not a generic framework.
+The included gateway is a template example.
 
 ## Extension points
 
-- Extend by adding narrow functions/classes with tests.
-- Keep app-specific behavior in projects/\* unless it is truly reusable.
-- Avoid broad abstractions until at least two real scenarios need them.
+Create project-specific gateways that depend on contracts.

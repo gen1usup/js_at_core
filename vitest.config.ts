@@ -16,13 +16,22 @@ const alias = {
   '@automation-platform/selectors': path.resolve(__dirname, 'packages/selectors/src/index.ts'),
   '@automation-platform/ui-driver': path.resolve(__dirname, 'packages/ui-driver/src/index.ts'),
   '@automation-platform/ui-core': path.resolve(__dirname, 'packages/ui-core/src/index.ts'),
-  '@automation-platform/ui-components': path.resolve(__dirname, 'packages/ui-components/src/index.ts'),
+  '@automation-platform/ui-components': path.resolve(
+    __dirname,
+    'packages/ui-components/src/index.ts'
+  ),
   '@automation-platform/ui-flows': path.resolve(__dirname, 'packages/ui-flows/src/index.ts'),
   '@automation-platform/api-core': path.resolve(__dirname, 'packages/api-core/src/index.ts'),
   '@automation-platform/db-core': path.resolve(__dirname, 'packages/db-core/src/index.ts'),
   '@automation-platform/queue-core': path.resolve(__dirname, 'packages/queue-core/src/index.ts'),
-  '@automation-platform/data-support': path.resolve(__dirname, 'packages/data-support/src/index.ts'),
-  '@automation-platform/repositories': path.resolve(__dirname, 'packages/repositories/src/index.ts'),
+  '@automation-platform/data-support': path.resolve(
+    __dirname,
+    'packages/data-support/src/index.ts'
+  ),
+  '@automation-platform/repositories': path.resolve(
+    __dirname,
+    'packages/repositories/src/index.ts'
+  ),
   '@automation-platform/gateways': path.resolve(__dirname, 'packages/gateways/src/index.ts'),
   '@automation-platform/plugins': path.resolve(__dirname, 'packages/plugins/src/index.ts'),
   '@automation-platform/governance': path.resolve(__dirname, 'packages/governance/src/index.ts'),

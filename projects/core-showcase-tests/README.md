@@ -1,18 +1,20 @@
-﻿# Core Showcase Tests
+# Core Showcase Tests
 
-Vitest showcase project for the automation core modules.
+This project contains Vitest scenarios that demonstrate the automation core without relying on browser runtime for most checks.
 
 ## Scenarios
 
-- `tests/api-client-showcase.test.ts`: simple AxiosHttpClient request/response/schema-validation flow against demo-web-app.
-- `tests/integration-real-demo.test.ts`: real demo app integration with register/login/task polling/failed task/DLQ/diagnostics plugin.
-- `tests/core-capabilities-showcase.test.ts`: mock-driven core capabilities showcase with fake HTTP, DB and UI driver contracts.
+- `api-client-showcase.test.ts`: simple API request/response/schema validation against `demo-web-app`.
+- `api-async-job.test.ts`: create task and poll worker completion.
+- `api-dlq.test.ts`: force task failure and verify DLQ visibility.
+- `diagnostics-artifacts.test.ts`: create diagnostics bundle and plugin report artifacts.
+- `integration-real-demo.test.ts`: combine config, metadata, execution context, API client, file DB checks, and cleanup.
+- `core-capabilities-showcase.test.ts`: mock/core contract showcase without external runtime.
 
 ## Run
 
 ```bash
 npm test
-npx vitest run projects/core-showcase-tests/tests/**/*.test.ts
 ```
 
-The real demo tests start `demo-web-app` on a random port and clean temporary data under `artifacts/`.
+The demo app scenarios start `demo-web-app` on a random port with a temporary data directory under `artifacts/` and clean it up after each test.

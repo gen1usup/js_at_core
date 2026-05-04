@@ -2,66 +2,63 @@
 
 ## Purpose
 
-Shared TypeScript interfaces between modules.
+Defines shared TypeScript contracts used by platform packages so implementations stay decoupled.
 
 ## Scope
 
-- Provides the public API listed below.
-- Stays focused on its package responsibility inside the automation starter kit.
-- Is designed to be composed with other packages instead of owning complete scenarios alone.
+- Logger, metadata, execution, cleanup, UI, HTTP, DB, queue, plugin, and CLI interfaces.
+- Shared primitive domain types such as capabilities and risk levels.
 
 ## Non-goals
 
-- Does not replace a test runner.
-- Does not introduce project-specific business logic.
-- Does not claim production readiness beyond the tests and CI in this repository.
+- Runtime behavior.
+- Project-specific business logic.
+- External service setup.
 
 ## Public API
 
-- UIDriver
-- HttpClient
-- DatabaseClient
-- QueueClient
-- ExecutionContext
-- ProjectAdapter
-- PluginContract
+- `PlatformLogger`
+- `UIDriver`
+- `HttpClient`
+- `DatabaseClient`
+- `QueueClient`
+- `ExecutionContext`
+- `TestMetadata`
+- `PlatformPlugin`
+- `ProjectAdapter`
 
 ## Basic usage
 
 ```ts
-import { UIDriver } from '@automation-platform/contracts';
+import type { HttpClient } from '@automation-platform/contracts';
 
-const run = async (client: HttpClient) => client.send({ method: 'GET', path: '/health' });
+const readHealth = (client: HttpClient) =>
+  client.send<{ ok: boolean }>({
+    method: 'GET',
+    path: '/health'
+  });
 ```
 
 ## Integration
 
-- Used through workspace imports by tests, examples or neighboring packages.
-- Prefer depending on shared contracts when crossing package boundaries.
-- See the root README showcase matrix for concrete usage paths.
+Most packages import these types to avoid runtime coupling.
 
 ## Configuration
 
-- Most options are passed explicitly by constructor/function input.
-- Environment-level settings are handled by @automation-platform/config when needed.
-- This package does not require secrets directly unless the caller passes them into its own config.
+No runtime configuration.
 
 ## Error handling
 
-- Errors are surfaced to callers instead of being swallowed.
-- Shared platform error classes from @automation-platform/utils are used where this package owns the failure mode.
-- Callers should add scenario-level diagnostics/cleanup through execution and diagnostics packages.
+No runtime error handling; this package is types only.
 
 ## Testing
 
-TypeScript compilation only because this package is type-only
+Covered by `npm run typecheck`.
 
 ## Limitations
 
-Interface changes can be breaking across packages.
+Contracts are evolving starter-kit interfaces, not frozen external API.
 
 ## Extension points
 
-- Extend by adding narrow functions/classes with tests.
-- Keep app-specific behavior in projects/\* unless it is truly reusable.
-- Avoid broad abstractions until at least two real scenarios need them.
+Prefer small focused interfaces over broad catch-all contracts.

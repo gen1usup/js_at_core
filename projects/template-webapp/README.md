@@ -1,4 +1,4 @@
-﻿# Template Webapp Showcase
+# Template Webapp Showcase
 
 Small project template that demonstrates how a project can compose platform contracts, selectors, routes, repositories, gateway and queue-aware tests without browser runtime.
 

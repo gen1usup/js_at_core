@@ -12,8 +12,12 @@
   ],
   "scripts": {
     "clean": "rimraf packages/*/dist projects/*/dist coverage artifacts",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "check:unicode": "node scripts/check-hidden-unicode.mjs",
     "build": "tsc -b tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.typecheck.json --noEmit",
+    "demo:typecheck": "tsc -p demo-web-app/tsconfig.json --noEmit",
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run",
     "test:unit": "vitest run",
@@ -23,10 +27,14 @@
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report",
     "playwright:install": "playwright install chromium",
-    "validate": "npm run governance:validate && npm run config:validate",
+    "validate": "npm run check:unicode && npm run format:check && npm run lint && npm run typecheck && npm run demo:typecheck && npm run test && npm run validate:platform && npm run validate:docs",
+    "validate:platform": "npm run governance:validate && npm run config:validate",
+    "validate:docs": "node scripts/validate-docs.mjs",
     "governance:validate": "tsx scripts/validate-governance.ts",
     "config:validate": "tsx scripts/validate-config.ts",
-    "ci": "npm run lint && npm run typecheck && npm run test && npm run build && npm run validate && npm run test:e2e"
+    "ci:core": "npm run validate && npm run build",
+    "ci:e2e": "npm run test:e2e",
+    "ci": "npm run ci:core && npm run ci:e2e"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",

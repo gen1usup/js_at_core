@@ -2,65 +2,61 @@
 
 ## Purpose
 
-Quality checks for selectors, metadata, config, naming and hard sleeps.
+Validates automation conventions such as selector quality, metadata completeness, naming, config quality, and hard sleep usage.
 
 ## Scope
 
-- Provides the public API listed below.
-- Stays focused on its package responsibility inside the automation starter kit.
-- Is designed to be composed with other packages instead of owning complete scenarios alone.
+- Selector checks.
+- Metadata/config quality checks.
+- Repo-level governance audit.
 
 ## Non-goals
 
-- Does not replace a test runner.
-- Does not introduce project-specific business logic.
-- Does not claim production readiness beyond the tests and CI in this repository.
+- Security scanning.
+- Replacing ESLint.
+- Business rule enforcement.
 
 ## Public API
 
-- validateSelectorQuality
-- validateMetadataQuality
-- validateConfigQuality
-- validateName
-- detectHardSleepUsage
-- runGovernanceAudit
+- `GovernanceIssue`
+- `GovernanceReport`
+- `validateSelectorQuality`
+- `validateMetadataQuality`
+- `validateConfigQuality`
+- `validateName`
+- `detectHardSleepUsage`
+- `buildValidationResult`
+- `runGovernanceAudit`
 
 ## Basic usage
 
 ```ts
-import { validateSelectorQuality } from '@automation-platform/governance';
+import { runGovernanceAudit } from '@automation-platform/governance';
 
 const report = await runGovernanceAudit(process.cwd());
+if (!report.passed) console.error(report.issues);
 ```
 
 ## Integration
 
-- Used through workspace imports by tests, examples or neighboring packages.
-- Prefer depending on shared contracts when crossing package boundaries.
-- See the root README showcase matrix for concrete usage paths.
+Root `npm run governance:validate` calls this package through `scripts/validate-governance.ts`.
 
 ## Configuration
 
-- Most options are passed explicitly by constructor/function input.
-- Environment-level settings are handled by @automation-platform/config when needed.
-- This package does not require secrets directly unless the caller passes them into its own config.
+Runs against a root directory and source files.
 
 ## Error handling
 
-- Errors are surfaced to callers instead of being swallowed.
-- Shared platform error classes from @automation-platform/utils are used where this package owns the failure mode.
-- Callers should add scenario-level diagnostics/cleanup through execution and diagnostics packages.
+Returns structured issues for validation failures.
 
 ## Testing
 
-packages/governance/src/index.test.ts and npm run validate
+Covered by governance unit tests and `npm run governance:validate`.
 
 ## Limitations
 
-Hard sleep scan is intentionally simple and line-based.
+Rules are intentionally small and repository-specific.
 
 ## Extension points
 
-- Extend by adding narrow functions/classes with tests.
-- Keep app-specific behavior in projects/\* unless it is truly reusable.
-- Avoid broad abstractions until at least two real scenarios need them.
+Add focused checks with tests and avoid broad false positives.

@@ -2,65 +2,65 @@
 
 ## Purpose
 
-Deterministic data builders, presets, diffs and lifecycle helpers.
+Provides deterministic test data helpers, builders, presets, snapshots, and lifecycle cleanup helpers.
 
 ## Scope
 
-- Provides the public API listed below.
-- Stays focused on its package responsibility inside the automation starter kit.
-- Is designed to be composed with other packages instead of owning complete scenarios alone.
+- Seeded data generation.
+- Generic builders and presets.
+- Snapshot diffing and lifecycle cleanup support.
 
 ## Non-goals
 
-- Does not replace a test runner.
-- Does not introduce project-specific business logic.
-- Does not claim production readiness beyond the tests and CI in this repository.
+- Persistence.
+- Domain-specific fixtures.
+- API or DB transport.
 
 ## Public API
 
-- DeterministicDataGenerator
-- DataBuilder
-- PresetFactory
-- createSnapshotDiff
-- LifecycleEntitySupport
-- templateEntityBuilder
+- `seedConfigSchema`
+- `DeterministicDataGenerator`
+- `DataBuilder`
+- `PresetFactory`
+- `Snapshot`
+- `createSnapshotDiff`
+- `SeedHelper`
+- `LifecycleEntitySupport`
+- `TemplateEntity`
+- `templateEntityBuilder`
 
 ## Basic usage
 
 ```ts
-import { DeterministicDataGenerator } from '@automation-platform/data-support';
+import {
+  DeterministicDataGenerator,
+  templateEntityBuilder
+} from '@automation-platform/data-support';
 
-const entity = templateEntityBuilder(new DeterministicDataGenerator(2026)).build();
+const generator = new DeterministicDataGenerator(42);
+const entity = templateEntityBuilder(generator).with({ status: 'draft' }).build();
 ```
 
 ## Integration
 
-- Used through workspace imports by tests, examples or neighboring packages.
-- Prefer depending on shared contracts when crossing package boundaries.
-- See the root README showcase matrix for concrete usage paths.
+Used by core showcase tests for repeatable data and cleanup examples.
 
 ## Configuration
 
-- Most options are passed explicitly by constructor/function input.
-- Environment-level settings are handled by @automation-platform/config when needed.
-- This package does not require secrets directly unless the caller passes them into its own config.
+Seeded generation accepts seed config; builders accept local defaults.
 
 ## Error handling
 
-- Errors are surfaced to callers instead of being swallowed.
-- Shared platform error classes from @automation-platform/utils are used where this package owns the failure mode.
-- Callers should add scenario-level diagnostics/cleanup through execution and diagnostics packages.
+Builder misuse surfaces as normal TypeScript or runtime errors.
 
 ## Testing
 
-core-capabilities-showcase.test.ts
+Covered by core showcase tests and `npm run typecheck`.
 
 ## Limitations
 
-TemplateEntity is a demo shape; no external data source integration.
+Template entity is illustrative, not a domain model.
 
 ## Extension points
 
-- Extend by adding narrow functions/classes with tests.
-- Keep app-specific behavior in projects/\* unless it is truly reusable.
-- Avoid broad abstractions until at least two real scenarios need them.
+Add project-specific builders in project packages and reuse generic primitives.

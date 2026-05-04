@@ -1,7 +1,10 @@
 import { defineConfig, devices, type PlaywrightTestConfig } from '@playwright/test';
 
 const externalBaseURL = process.env.BASE_URL ?? process.env.AP_BASE_URL;
-const baseURL = externalBaseURL ?? 'http://127.0.0.1:3010';
+const demoHost = '127.0.0.1';
+const demoPort = '3010';
+const demoBaseURL = `http://${demoHost}:${demoPort}`;
+const baseURL = externalBaseURL ?? demoBaseURL;
 
 const config: PlaywrightTestConfig = {
   testDir: './tests/e2e',
@@ -30,9 +33,15 @@ if (process.env.CI) {
 if (!externalBaseURL) {
   config.webServer = {
     command: 'npx tsx demo-web-app/src/server.ts',
-    url: baseURL,
+    url: demoBaseURL,
     reuseExistingServer: !process.env.CI,
-    timeout: 30_000
+    timeout: 30_000,
+    env: {
+      ...process.env,
+      DEMO_HOST: demoHost,
+      DEMO_PORT: demoPort,
+      DEMO_DATA_DIR: 'artifacts/demo-e2e-data'
+    }
   };
 }
 

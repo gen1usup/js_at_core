@@ -10,7 +10,9 @@ import { runGovernanceAudit } from '../packages/governance/src/index';
   if (warnings.length > 0) {
     console.warn(`Governance warnings: ${warnings.length}`);
     warnings.slice(0, 30).forEach((warning) => {
-      console.warn(`- [${warning.code}] ${warning.message}${warning.source ? ` (${path.relative(root, warning.source)})` : ''}`);
+      console.warn(
+        `- [${warning.code}] ${warning.message}${warning.source ? ` (${path.relative(root, warning.source)})` : ''}`
+      );
     });
   }
 

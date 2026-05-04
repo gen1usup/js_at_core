@@ -2,65 +2,66 @@
 
 ## Purpose
 
-Typed HTTP client primitives for API automation.
+Provides a typed HTTP client wrapper for automation tests that need retries, auth token injection, response validation, polling, and normalized API errors.
 
 ## Scope
 
-- Provides the public API listed below.
-- Stays focused on its package responsibility inside the automation starter kit.
-- Is designed to be composed with other packages instead of owning complete scenarios alone.
+- `AxiosHttpClient` implements the shared HTTP contract.
+- `UnifiedApiError` normalizes API failures.
+- `paginatedResponseSchema` helps validate paged data.
 
 ## Non-goals
 
-- Does not replace a test runner.
-- Does not introduce project-specific business logic.
-- Does not claim production readiness beyond the tests and CI in this repository.
+- Service-specific repositories.
+- Browser testing.
+- Database access.
 
 ## Public API
 
-- AxiosHttpClient
-- ApiClientConfig
-- ApiRequestOptions
-- PaginatedResponse
-- UnifiedApiError
-- paginatedResponseSchema
+- `AxiosHttpClient`
+- `ApiClientConfig`
+- `ApiRequestOptions`
+- `PaginatedResponse`
+- `ApiErrorShape`
+- `UnifiedApiError`
+- `paginatedResponseSchema`
 
 ## Basic usage
 
 ```ts
 import { AxiosHttpClient } from '@automation-platform/api-core';
+import { createLogger } from '@automation-platform/logger';
 
-const client = new AxiosHttpClient({ baseUrl, timeoutMs: 5000, retry, logger });
+const client = new AxiosHttpClient({
+  baseUrl: 'http://127.0.0.1:3010',
+  timeoutMs: 5000,
+  retry: { maxAttempts: 2, delayMs: 50, backoffFactor: 1 },
+  logger: createLogger({ level: 'info', serviceName: 'api-example', environment: 'test' })
+});
+
+const response = await client.send<{ ok: boolean }>({ method: 'GET', path: '/health' });
 ```
 
 ## Integration
 
-- Used through workspace imports by tests, examples or neighboring packages.
-- Prefer depending on shared contracts when crossing package boundaries.
-- See the root README showcase matrix for concrete usage paths.
+Used by API showcase tests and repository examples to talk to the demo app.
 
 ## Configuration
 
-- Most options are passed explicitly by constructor/function input.
-- Environment-level settings are handled by @automation-platform/config when needed.
-- This package does not require secrets directly unless the caller passes them into its own config.
+Requires base URL, timeout, retry policy, logger, and optional auth token provider.
 
 ## Error handling
 
-- Errors are surfaced to callers instead of being swallowed.
-- Shared platform error classes from @automation-platform/utils are used where this package owns the failure mode.
-- Callers should add scenario-level diagnostics/cleanup through execution and diagnostics packages.
+Transport, status, and schema failures are surfaced as platform API errors.
 
 ## Testing
 
-projects/core-showcase-tests/tests/api-client-showcase.test.ts and integration-real-demo.test.ts
+Covered by API showcase tests. Run `npm test`.
 
 ## Limitations
 
-Axios is the only transport; auth tokens are supplied by callers.
+It is a pragmatic client wrapper, not an SDK generator.
 
 ## Extension points
 
-- Extend by adding narrow functions/classes with tests.
-- Keep app-specific behavior in projects/\* unless it is truly reusable.
-- Avoid broad abstractions until at least two real scenarios need them.
+Add domain repositories on top of `HttpClient` rather than embedding endpoints here.

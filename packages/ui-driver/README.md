@@ -1,72 +1,65 @@
-﻿# @automation-platform/ui-driver
+# @automation-platform/ui-driver
 
 ## Purpose
 
-Playwright-backed UIDriver implementation.
+Implements the platform UI driver contract with Playwright runtime primitives and diagnostics capture.
 
 ## Scope
 
-- Provides the public API listed below.
-- Stays focused on its package responsibility inside the automation starter kit.
-- Is designed to be composed with other packages instead of owning complete scenarios alone.
+- `PlaywrightUiDriver` controls browser/context/page lifecycle.
+- Supports locator-first actions through Playwright under the contract boundary.
+- Captures console, failed requests, screenshots, HTML, cookies/storage, dialogs, and tabs.
 
 ## Non-goals
 
-- Does not replace a test runner.
-- Does not introduce project-specific business logic.
-- Does not claim production readiness beyond the tests and CI in this repository.
+- Replacing `@playwright/test`.
+- Defining assertions.
+- Creating a custom browser framework.
 
 ## Public API
 
-- BrowserLaunchConfig
-- UiDriverHooks
-- DriverDiagnosticsSnapshot
-- PlaywrightUiDriver
+- `BrowserLaunchConfig`
+- `UiDriverHooks`
+- `DriverDiagnosticsSnapshot`
+- `PlaywrightUiDriver`
 
 ## Basic usage
 
 ```ts
-import { BrowserLaunchConfig } from '@automation-platform/ui-driver';
+import { type BrowserLaunchConfig, PlaywrightUiDriver } from '@automation-platform/ui-driver';
 
-const driver = await PlaywrightUiDriver.launch(
-  {
-    headless: true,
-    viewport: { width: 1280, height: 720 },
-    slowMoMs: 0,
-    defaultNavigationTimeoutMs: 30000
-  },
-  logger
-);
+const config: BrowserLaunchConfig = {
+  headless: true,
+  viewport: { width: 1280, height: 720 },
+  slowMoMs: 0,
+  defaultNavigationTimeoutMs: 10000
+};
+
+const driver = await PlaywrightUiDriver.launch(config, logger);
+await driver.goto('http://127.0.0.1:3010');
+await driver.close();
 ```
 
 ## Integration
 
-- Used through workspace imports by tests, examples or neighboring packages.
-- Prefer depending on shared contracts when crossing package boundaries.
-- See the root README showcase matrix for concrete usage paths.
+Use this wrapper for the platform `UIDriver` contract. Use raw `@playwright/test` for specs in `tests/e2e`.
 
 ## Configuration
 
-- Most options are passed explicitly by constructor/function input.
-- Environment-level settings are handled by @automation-platform/config when needed.
-- This package does not require secrets directly unless the caller passes them into its own config.
+`BrowserLaunchConfig` controls headless mode, viewport, base URL, timeouts, and launch behavior.
 
 ## Error handling
 
-- Errors are surfaced to callers instead of being swallowed.
-- Shared platform error classes from @automation-platform/utils are used where this package owns the failure mode.
-- Callers should add scenario-level diagnostics/cleanup through execution and diagnostics packages.
+Driver action failures surface as UI action errors and diagnostics can be collected after failures.
 
 ## Testing
 
-typecheck and root Playwright e2e showcase; no package-local unit tests yet
+Covered by typecheck and Playwright e2e scenarios.
 
 ## Limitations
 
-Chromium launch path only; No legacy browser-driver alias or compatibility layer.
+The wrapper is intentionally thin and should not duplicate Playwright Test features.
 
 ## Extension points
 
-- Extend by adding narrow functions/classes with tests.
-- Keep app-specific behavior in projects/\* unless it is truly reusable.
-- Avoid broad abstractions until at least two real scenarios need them.
+Extend diagnostics or contract methods only when a platform-level caller needs them.

@@ -2,76 +2,71 @@
 
 ## Purpose
 
-Typed test metadata declaration and validation.
+Defines and validates test metadata used for governance, reporting context, and capability checks.
 
 ## Scope
 
-- Provides the public API listed below.
-- Stays focused on its package responsibility inside the automation starter kit.
-- Is designed to be composed with other packages instead of owning complete scenarios alone.
+- `defineMetadata` validates declarations.
+- `validateMetadata` parses unknown input.
+- `metadataSupportsCapabilities` checks runtime capability fit.
 
 ## Non-goals
 
-- Does not replace a test runner.
-- Does not introduce project-specific business logic.
-- Does not claim production readiness beyond the tests and CI in this repository.
+- External metadata storage.
+- Report generation.
+- Test execution.
 
 ## Public API
 
-- defineMetadata
-- validateMetadata
-- metadataSupportsCapabilities
-- metadataFor
+- `MetadataDeclaration`
+- `defineMetadata`
+- `validateMetadata`
+- `metadataSupportsCapabilities`
+- `metadataFor`
 
 ## Basic usage
 
 ```ts
-import { defineMetadata } from '@automation-platform/metadata';
+import { defineMetadata, metadataSupportsCapabilities } from '@automation-platform/metadata';
 
 const metadata = defineMetadata({
-  testId: 'demo-001',
-  title: 'Demo',
-  feature: 'demo',
-  component: 'api',
+  testId: 'api-001',
+  title: 'API health',
+  feature: 'api',
+  component: 'health',
   severity: 'medium',
-  risk: 'minor',
-  businessCriticality: 'p3',
-  owner: 'team',
-  tags: ['demo'],
+  risk: 'moderate',
+  businessCriticality: 'p2',
+  owner: 'qa',
+  tags: ['api'],
   estimatedDurationMs: 30000,
   suite: 'smoke',
   capabilityRequirements: ['api']
 });
+
+metadataSupportsCapabilities(metadata, { api: true });
 ```
 
 ## Integration
 
-- Used through workspace imports by tests, examples or neighboring packages.
-- Prefer depending on shared contracts when crossing package boundaries.
-- See the root README showcase matrix for concrete usage paths.
+Used by execution context, governance, and showcase tests.
 
 ## Configuration
 
-- Most options are passed explicitly by constructor/function input.
-- Environment-level settings are handled by @automation-platform/config when needed.
-- This package does not require secrets directly unless the caller passes them into its own config.
+Metadata is provided in code as declarations.
 
 ## Error handling
 
-- Errors are surfaced to callers instead of being swallowed.
-- Shared platform error classes from @automation-platform/utils are used where this package owns the failure mode.
-- Callers should add scenario-level diagnostics/cleanup through execution and diagnostics packages.
+Invalid declarations fail zod validation.
 
 ## Testing
 
-packages/metadata/src/index.test.ts and showcase tests
+Covered by metadata unit tests and governance tests. Run `npm test`.
 
 ## Limitations
 
-Metadata is in-code only; no test management sync.
+The taxonomy is starter-kit level and may evolve.
 
 ## Extension points
 
-- Extend by adding narrow functions/classes with tests.
-- Keep app-specific behavior in projects/\* unless it is truly reusable.
-- Avoid broad abstractions until at least two real scenarios need them.
+Add fields through the schema and update governance/docs together.

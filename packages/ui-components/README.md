@@ -1,62 +1,73 @@
-﻿# @automation-platform/ui-components
+# @automation-platform/ui-components
 
 ## Purpose
 
-Domain-neutral UI component wrappers over UICore.
+Provides lightweight typed component wrappers over the platform UI driver contract.
 
 ## Scope
 
-- Provides the public API listed below.
-- Stays focused on its package responsibility inside the automation starter kit.
-- Is designed to be composed with other packages instead of owning complete scenarios alone.
+- Button, input, checkbox, table, modal, tabs, pagination, and other wrappers.
+- `ComponentFactory` centralizes wrapper creation.
 
 ## Non-goals
 
-- Does not replace a test runner.
-- Does not introduce project-specific business logic.
-- Does not claim production readiness beyond the tests and CI in this repository.
+- Rendering UI.
+- Replacing a design system.
+- Replacing Playwright locators in e2e tests.
 
 ## Public API
 
-- ComponentFactory and Button/Input/Table/Modal/etc component wrappers
+- `ButtonComponent`
+- `InputComponent`
+- `TextareaComponent`
+- `CheckboxComponent`
+- `RadioComponent`
+- `SelectComponent`
+- `TableComponent`
+- `GridComponent`
+- `ModalComponent`
+- `DrawerComponent`
+- `ToastComponent`
+- `TabsComponent`
+- `PaginationComponent`
+- `HeaderComponent`
+- `SidebarComponent`
+- `FileUploaderComponent`
+- `FilterPanelComponent`
+- `DatePickerComponent`
+- `LoaderComponent`
+- `ComponentFactoryOptions`
+- `ComponentFactory`
 
 ## Basic usage
 
 ```ts
 import { ComponentFactory } from '@automation-platform/ui-components';
 
-const components = new ComponentFactory({ ui, logger, namespace: 'login' });
-await components.button('submit').click();
+const components = new ComponentFactory({ ui, logger, namespace: 'auth' });
+await components.button('login.submit').click();
 ```
 
 ## Integration
 
-- Used through workspace imports by tests, examples or neighboring packages.
-- Prefer depending on shared contracts when crossing package boundaries.
-- See the root README showcase matrix for concrete usage paths.
+Depends on `UIDriver` and selector names for platform-level UI abstractions.
 
 ## Configuration
 
-- Most options are passed explicitly by constructor/function input.
-- Environment-level settings are handled by @automation-platform/config when needed.
-- This package does not require secrets directly unless the caller passes them into its own config.
+Construct with a `UIDriver` implementation and optional naming conventions.
 
 ## Error handling
 
-- Errors are surfaced to callers instead of being swallowed.
-- Shared platform error classes from @automation-platform/utils are used where this package owns the failure mode.
-- Callers should add scenario-level diagnostics/cleanup through execution and diagnostics packages.
+Errors come from the underlying driver actions.
 
 ## Testing
 
-core capability showcase only; no package-local unit tests yet
+No dedicated unit tests yet; covered by typecheck and UI contract usage.
 
 ## Limitations
 
-Generic wrappers only; no app-specific semantics.
+Wrappers are intentionally thin and should not hide important browser assertions.
 
 ## Extension points
 
-- Extend by adding narrow functions/classes with tests.
-- Keep app-specific behavior in projects/\* unless it is truly reusable.
-- Avoid broad abstractions until at least two real scenarios need them.
+Add project-specific components when domain semantics matter.

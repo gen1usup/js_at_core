@@ -2,64 +2,57 @@
 
 ## Purpose
 
-Reusable API/DB repository patterns for template entities.
+Provides reusable repository base classes and template repositories over API and DB contracts.
 
 ## Scope
 
-- Provides the public API listed below.
-- Stays focused on its package responsibility inside the automation starter kit.
-- Is designed to be composed with other packages instead of owning complete scenarios alone.
+- `BaseApiRepository` and `BaseDbRepository` implement common CRUD-like patterns.
+- `TemplateApiRepository` and `TemplateDbRepository` demonstrate concrete usage.
 
 ## Non-goals
 
-- Does not replace a test runner.
-- Does not introduce project-specific business logic.
-- Does not claim production readiness beyond the tests and CI in this repository.
+- All domain repositories.
+- Transport ownership.
+- Schema generation.
 
 ## Public API
 
-- BaseApiRepository
-- BaseDbRepository
-- TemplateApiRepository
-- TemplateDbRepository
-- TemplateEntity
+- `EntityWithId`
+- `BaseApiRepository`
+- `BaseDbRepository`
+- `TemplateEntity`
+- `TemplateApiRepository`
+- `TemplateDbRepository`
 
 ## Basic usage
 
 ```ts
-import { BaseApiRepository } from '@automation-platform/repositories';
+import { TemplateApiRepository } from '@automation-platform/repositories';
 
-const entity = await new TemplateApiRepository(httpClient, logger).createMinimalValid('demo');
+const repository = new TemplateApiRepository(apiClient, logger);
+const entity = await repository.getById('entity-1');
 ```
 
 ## Integration
 
-- Used through workspace imports by tests, examples or neighboring packages.
-- Prefer depending on shared contracts when crossing package boundaries.
-- See the root README showcase matrix for concrete usage paths.
+Used by gateways and showcase tests to demonstrate repository boundaries.
 
 ## Configuration
 
-- Most options are passed explicitly by constructor/function input.
-- Environment-level settings are handled by @automation-platform/config when needed.
-- This package does not require secrets directly unless the caller passes them into its own config.
+API repositories need `HttpClient`; DB repositories need `DatabaseClient`.
 
 ## Error handling
 
-- Errors are surfaced to callers instead of being swallowed.
-- Shared platform error classes from @automation-platform/utils are used where this package owns the failure mode.
-- Callers should add scenario-level diagnostics/cleanup through execution and diagnostics packages.
+Transport errors come from the underlying API/DB clients.
 
 ## Testing
 
-packages/repositories/src/index.test.ts and showcase tests
+Covered by repository unit tests. Run `npm test`.
 
 ## Limitations
 
-Template repositories are examples; DB SQL assumes template_entities.
+Template repositories are examples and should be replaced by project-specific repositories.
 
 ## Extension points
 
-- Extend by adding narrow functions/classes with tests.
-- Keep app-specific behavior in projects/\* unless it is truly reusable.
-- Avoid broad abstractions until at least two real scenarios need them.
+Subclass base repositories for domain entities and inject transport details.
